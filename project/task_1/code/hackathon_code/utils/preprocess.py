@@ -30,6 +30,5 @@ def divide_csv_file(path, divisions, randomize):
         division_path = os.path.join(divisions_dir, f'agoda_train_{i}_from_{divisions}.csv')
         with open(division_path, 'w', newline='') as file:
             writer = csv.writer(file)
-            start_index = i * rows_per_division
             end_index = (i + 1) * rows_per_division
-            writer.writerows(rows[start_index:end_index])
+            writer.writerows(rows[:end_index])
