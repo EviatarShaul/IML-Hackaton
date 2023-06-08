@@ -45,7 +45,6 @@ DATAFRAME_IMPORTANT_COLS = ["guest_is_not_the_customer",
                             "no_of_children",
                             "no_of_extra_bed",
                             "no_of_room",
-                            "original_selling_amount",
                             "time_from_booking_to_checkin",
                             "stay_duration",
                             "is_weekday",
@@ -87,21 +86,29 @@ def explore_predict_selling_amount(raw_data: pd.DataFrame, validate: pd.DataFram
             if col.startswith(prefix):
                 DATAFRAME_IMPORTANT_COLS.append(col)
 
+    cancel_real = np.where(pd.Series(test[TASK_1_LABEL_NAME]).isnull(), 0, 1)
+
+    # Internal preprocess:
     data = pd.concat([raw_data, validate, test])
     data = preprocess_task_2(data)[0]
+    y_label = np.max([data["no_show_cost"].values, data["cancellation_fee"].values], axis=0)
+    y_label[y_label == 0] = -1
+
     raw_data, validate, test = data.iloc[:len(raw_data)], \
         data.iloc[len(raw_data): len(raw_data) + len(validate)], \
         data.iloc[len(raw_data) + len(validate):]
 
-    X_train, y_train = create_x_y_df(raw_data, DATAFRAME_IMPORTANT_COLS,
-                                     LABEL_NAME)
-    X_val, y_val = create_x_y_df(validate, DATAFRAME_IMPORTANT_COLS,
-                                 LABEL_NAME)
-    X_test, y_test = create_x_y_df(test, DATAFRAME_IMPORTANT_COLS,
-                                   LABEL_NAME)
+    y_train, y_val, y_test = y_label[:len(raw_data)], \
+        y_label[len(raw_data): len(raw_data) + len(validate)], \
+        y_label[len(raw_data) + len(validate):]
 
-    cancel_model: RandomForestClassifier = cancellation_fit(raw_data, X_test)
-    cancel_pred = cancel_model.predict(X_test.drop(columns=[LABEL_NAME]))
+    X_train = create_x_y_df(raw_data, DATAFRAME_IMPORTANT_COLS)[0]
+    X_val = create_x_y_df(validate, DATAFRAME_IMPORTANT_COLS)[0]
+    X_test = create_x_y_df(test, DATAFRAME_IMPORTANT_COLS)[0]
+
+
+    # cancel_model: RandomForestClassifier = cancellation_fit(raw_data, X_test)
+    # cancel_pred = cancel_model.predict(X_test.drop(columns=[LABEL_NAME]))
 
     # TODO: this part should be done in the INTERNAL pre-processing part!
     # changing y_train: where 1 indicating that a cancellation is predicted, and 0 otherwise
@@ -122,11 +129,11 @@ def explore_predict_selling_amount(raw_data: pd.DataFrame, validate: pd.DataFram
     pred = model.predict(X_test)
     print(mean_squared_error(y_test, pred, squared=False))
 
-    classifier = lambda x: AdaBoostRegressor(n_estimators=x)
-    display_errors(X_test, X_train, X_val, classifier, list(range(5, 200, 3)), y_test,
-                   y_train, y_val, r"Random Forest Classifier - "
-                                   r"Number of classifiers as a function of f1 score "
-                                   r"on train\validation\test data")
+    # classifier = lambda x: AdaBoostRegressor(n_estimators=x)
+    # display_errors(X_test, X_train, X_val, classifier, list(range(5, 200, 3)), y_test,
+    #                y_train, y_val, r"Random Forest Classifier - "
+    #                                r"Number of classifiers as a function of f1 score "
+    #                                r"on train\validation\test data")
 
     # TODO: older classifiers (lesser than randomForest):
     # classifier = KNeighborsClassifier
@@ -138,8 +145,8 @@ def explore_predict_selling_amount(raw_data: pd.DataFrame, validate: pd.DataFram
 
     # TODO: older version that uses simpler classifiers:
     # classify_cancellation_prediction(X_train, y_train, X_test, y_test)
-
-    result = np.where(cancel_pred == 1, -1, pred)
+    result = np.where(cancel_real == 1, -1, pred)
+    # result = np.where(cancel_pred == 1, -1, pred)
     print(mean_squared_error(y_test, result, squared=False))
     return result
 
@@ -274,7 +281,8 @@ def calculate_cancellation_fees(row: pd.Series) -> pd.Series:
 
 
 def preprocess_task_2(data: pd.DataFrame) -> Tuple[pd.DataFrame, Dict]:
-    data = data.join(data.apply(calculate_cancellation_fees, axis=1))
+    # data = data.join(data.apply(calculate_cancellation_fees, axis=1))
+    data = pd.concat([data, data.apply(calculate_cancellation_fees, axis=1)], axis=1)
     # todo add default values
     return data, {}
 
