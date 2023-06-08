@@ -154,7 +154,7 @@ def create_additional_cols(df: pd.DataFrame) -> tuple[DataFrame, dict[str, Any]]
     return df, default_values
 
 
-DUMMY_COLS = ['accommadation_type_name', 'charge_option']
+DUMMY_COLS = ['accommadation_type_name', 'charge_option', 'original_payment_type']
 
 
 def get_dummies_preprocess(df: pd.DataFrame) -> Tuple[pd.DataFrame, Dict]:
@@ -168,13 +168,24 @@ def get_dummies_preprocess(df: pd.DataFrame) -> Tuple[pd.DataFrame, Dict]:
         dist = df[col].value_counts(normalize=True)
         defualt_values[col] = dist
         df = pd.concat([df, pd.get_dummies(df[col], prefix=col, dtype=float)], axis=1)
-        if df[col].isnull().values.any(): # if there are null values in the column, fill dummies with approximate values
+        if df[
+            col].isnull().values.any():  # if there are null values in the column, fill dummies with approximate values
             df.loc[df[col].isnull(), df.columns.str.startswith(col)] = np.nan
             for val in dist.index:
                 df[col + '_' + str(val)].fillna(dist[val], inplace=True)
         df = df.drop(columns=[col])
 
     return df, defualt_values
+
+
+# todo - check of original_payment_type or original_payment_method
+# todo - check langauge vs guest_nationality_country_name vs customer_nationality
+# todo - check hotel_country_code vs (hotel_area_code and hotel_city_code)
+
+
+
+cols_to_drop = ['booking_datetime', 'checkin_date', 'checkout_date', 'hotel_live_date', 'original_selling_currency',
+                'original_payment_method']
 
 
 def generic_preprocess(df: pd.DataFrame) -> Tuple[pd.DataFrame, Dict]:
@@ -184,13 +195,10 @@ def generic_preprocess(df: pd.DataFrame) -> Tuple[pd.DataFrame, Dict]:
     :return: a tuple of the processed dataframe and the dictionary of the columns and their default values
     """
     df, default_values = create_additional_cols(df)
-    df["cost"] = df.apply(lambda row: convert_currency_to_usd(row["original_selling_amount"],
-                                                              row["original_payment_currency"],
-                                                              pd.to_datetime(row["booking_datetime"])), axis=1)
-    df = df.drop(columns=['original_selling_amount', 'original_payment_currency'])
-    default_values['cost'] = df['cost'].mean()
+    default_values['original_selling_amount'] = df['original_selling_amount'].mean()
 
     df, dummies_default_values = get_dummies_preprocess(df)
     default_values.update(dummies_default_values)
+    df = df.drop(columns=cols_to_drop)
 
     return df, default_values
