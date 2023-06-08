@@ -169,6 +169,7 @@ def task_1_routine(data: pd.DataFrame) -> NoReturn:
     :return: None
     """
     model = load_model(MODEL_LOAD_PATH)
+
     # Todo: add internal preprocess
     ids = data["h_booking_id"]
     data.drop(["h_booking_id"])

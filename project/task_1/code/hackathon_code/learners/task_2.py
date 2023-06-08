@@ -20,23 +20,24 @@ from project.task_1.code.hackathon_code.utils.csv_helper import *
 from project.task_1.code.hackathon_code.utils.preprocess import *
 from project.task_1.code.hackathon_code.utils.model_helper import *
 import joblib
+
 MODEL_SAVE_PATH = "task_1/code/hackathon_code/task_2_model_weights.sav"
 MODEL_LOAD_PATH = "task_1/code/hackathon_code/task_2_model_weights.sav"
 
 TASK_1_LABEL_NAME = "cancellation_datetime"
 TASK_1_DATAFRAME_IMPORTANT_COLS = ["guest_is_not_the_customer",
-                            "no_of_adults",
-                            "no_of_children",
-                            "no_of_extra_bed",
-                            "no_of_room",
-                            "time_from_booking_to_checkin",
-                            "stay_duration",
-                            "is_weekday",
-                            "checkin_month_sin",
-                            "checkin_month_cos",
-                            "hotel_age",
-                            "hotel_star_rating",
-                            "special_requests"]
+                                   "no_of_adults",
+                                   "no_of_children",
+                                   "no_of_extra_bed",
+                                   "no_of_room",
+                                   "time_from_booking_to_checkin",
+                                   "stay_duration",
+                                   "is_weekday",
+                                   "checkin_month_sin",
+                                   "checkin_month_cos",
+                                   "hotel_age",
+                                   "hotel_star_rating",
+                                   "special_requests"]
 
 LABEL_NAME = "original_selling_amount"
 DATAFRAME_IMPORTANT_COLS = ["guest_is_not_the_customer",
@@ -56,6 +57,10 @@ DATAFRAME_IMPORTANT_COLS = ["guest_is_not_the_customer",
                             "special_requests"]
 
 CATEGORICAL_COLS = ["charge_option_", "accommadation_type_name", "original_payment_type_"]
+
+DAYS_IDX = 0
+REL_COST_IDX = 1
+POLICY_COL = "cancellation_policy_code"
 
 
 def cancellation_fit(raw_data: pd.DataFrame, temp) -> RandomForestClassifier:
@@ -93,7 +98,6 @@ def explore_predict_selling_amount(raw_data: pd.DataFrame, validate: pd.DataFram
     cancel_model: RandomForestClassifier = cancellation_fit(raw_data, X_test)
     cancel_pred = cancel_model.predict(X_test.drop(columns=[LABEL_NAME]))
 
-
     # TODO: this part should be done in the INTERNAL pre-processing part!
     # changing y_train: where 1 indicating that a cancellation is predicted, and 0 otherwise
     # y_train = np.where(pd.Series(y_train).isnull(), 0, 1)
@@ -108,11 +112,10 @@ def explore_predict_selling_amount(raw_data: pd.DataFrame, validate: pd.DataFram
     print("when picking all 0 - error is: " +
           str(mean_squared_error(y_test, np.ones(y_test.shape[0]) * y_train.mean(), squared=False)))
 
-
     model = AdaBoostClassifier()
     model.fit(X_train, y_train)
     pred = model.predict(X_test)
-    print(mean_squared_error(y_test,pred))
+    print(mean_squared_error(y_test, pred))
 
     # classifier = RandomForestClassifier
     # display_errors(X_test, X_train, X_val, classifier, list(range(1, 15)), y_test,
@@ -132,7 +135,7 @@ def explore_predict_selling_amount(raw_data: pd.DataFrame, validate: pd.DataFram
     # classify_cancellation_prediction(X_train, y_train, X_test, y_test)
 
     result = np.where(cancel_pred == 1, -1, pred)
-    print(mean_squared_error(y_test,result))
+    print(mean_squared_error(y_test, result))
     return result
 
 
@@ -193,7 +196,7 @@ def classify_cancellation_prediction(X_train, y_train, X_test, y_test):
                    # "Linear SVM",
                    "LDA",
                    # "QDA",
-        "Random Forest (7)", "What changed?"]
+                   "Random Forest (7)", "What changed?"]
     errors = []
 
     # training regressors on the model:
@@ -217,6 +220,60 @@ def classify_cancellation_prediction(X_train, y_train, X_test, y_test):
     print(df.to_string())
 
 
+def parse_policies(policies: List[str], row: pd.Series) -> List:
+    res = [[np.inf, 0]]
+    for i in range(len(policies)):
+        d_ind = policies[i].find("D")
+        if d_ind != -1:  # if there is a D in the policy, it is a cancellation fee
+            days = int(policies[i][:d_ind])
+            rel_cost = int(policies[i][d_ind + 1:-1]) / 100 if policies[i][-1] == "P" else int(
+                policies[i][d_ind + 1:-1]) / row['stay_duration']
+            res.append([days, rel_cost])
+    # res.append([0, res[-1][REL_COST_IDX]])
+    res.sort(key=lambda x: x[DAYS_IDX], reverse=True)
+    return res
+
+
+def calculate_cancellation_fees(row: pd.Series) -> pd.Series:
+    ret_val = {"no_show_cost": 0, "cancellation_fee": 0}
+    if row['cancelled'] == 0:
+        return pd.Series(ret_val)
+
+    policies = row[POLICY_COL].split("_")
+    if policies[-1] == "UNKNOWN":
+        return pd.Series(ret_val)
+    if row['time_from_cancellation_to_checkin'] < 0:  # if no show
+        no_show_policy = policies[-1]  # get the last policy
+        if no_show_policy.find(
+                "D") != -1:  # if there is a D in the last policy, it is a cancellation fee, so no no_show cost
+            return pd.Series(ret_val)
+        else:  # if there is no D in the last policy, it is a no show cost
+            if no_show_policy[-1] == "P":
+                percentage = int(no_show_policy[:-1]) / 100
+            else:
+                percentage = min(1, (int(no_show_policy[:-1]) / row['stay_duration']))
+            ret_val['no_show_cost'] = percentage * row['original_selling_amount']
+            return pd.Series(ret_val)
+    else:  # if cancellation on time
+        cancellation_policies = parse_policies(policies, row)
+        idx = -1
+        fee_time = row['time_from_cancellation_to_checkin']
+
+        for i in range(len(cancellation_policies)):
+            if cancellation_policies[i][DAYS_IDX] > fee_time:
+                idx = i
+            else:
+                break
+        ret_val['cancellation_fee'] = cancellation_policies[idx][REL_COST_IDX] * row['original_selling_amount']
+        return pd.Series(ret_val)
+
+
+def preprocess_task_2(data: pd.DataFrame) -> Tuple[pd.DataFrame, Dict]:
+    data = data.join(data.apply(calculate_cancellation_fees, axis=1))
+    # todo add default values
+    return data, {}
+
+
 def task_2_routine(data: pd.DataFrame):
     """
     :param data:
@@ -225,7 +282,7 @@ def task_2_routine(data: pd.DataFrame):
     model = load_model(MODEL_LOAD_PATH)
     ids = data["h_booking_id"]
     data.drop(["h_booking_id"])
-    # Todo: add internal preprocess
+    data = preprocess_task_2(data)
     # data = internal_preprocess(data)
     pred = model.predict(data)
 
