@@ -68,13 +68,14 @@ def temp_classify_cancellation_prediction(raw_data: pd.DataFrame, validate: pd.D
     # classifier = KNeighborsClassifier
     # display_errors(X_test, X_train, X_val, classifier, list(range(1, 20)), y_test,
     #                y_train, y_val, "k-nn")
-    #
-    # classifier = RandomForestClassifier
-    # display_errors(X_test, X_train, X_val, classifier, list(range(1, 25)), y_test,
-    #                y_train, y_val, "Random Forest")
-    classifier = lambda x: DecisionTreeClassifier(max_depth=x)
+
+    classifier = RandomForestClassifier
     display_errors(X_test, X_train, X_val, classifier, list(range(1, 25)), y_test,
-                   y_train, y_val, "Decision Tree")
+                   y_train, y_val, "Random Forest")
+
+    # classifier = lambda x: DecisionTreeClassifier(max_depth=x)
+    # display_errors(X_test, X_train, X_val, classifier, list(range(1, 25)), y_test,
+    #                y_train, y_val, "Decision Tree")
 
     classify_cancellation_prediction(X_train, y_train, X_test, y_test)
 
@@ -136,7 +137,7 @@ def classify_cancellation_prediction(X_train, y_train, X_test, y_test):
         print(
             f"Model: {model_names[i]}:\n\tTrain Error: {model_f1_train_error}\n")
     # 21
-    errors.append("now changed to binary!")
+    errors.append("added dummies")
     d = {}
     for i in range(len(errors)):
         d[model_names[i]] = [errors[i]]
@@ -148,38 +149,13 @@ def classify_cancellation_prediction(X_train, y_train, X_test, y_test):
     print(df.to_string())
 
 
-"""
-def classify_cancellation_prediction(X_train, y_train, X_test, y_test):
-    # defining models to predict:
-    models = [
-        LogisticRegression(),
-        # LogisticRegression(penalty=f1_score),
-        DecisionTreeClassifier(max_depth=5),
-        KNeighborsClassifier(n_neighbors=1),
-        SVC(kernel='poly', probability=True, max_iter=50),
-        LinearDiscriminantAnalysis(store_covariance=True),
-        QuadraticDiscriminantAnalysis(store_covariance=True),
-        RandomForestClassifier()
-    ]
-    model_names = ["Logistic regression", "Desicion Tree (Depth 5)", "KNN",
-                   "Linear SVM",
-                   "LDA", "QDA", "Random Forest"]
-
-    # training regressors on the model:
-    for i in range(len(models)):
-        models[i].fit(X_train, y_train)
-        pred = models[i].predict(X_test)
-        model_f1_train_error = f1_score(y_test, pred)
-        print(f"Model: {model_names[i]}:\n\tTrain Error: {model_f1_train_error}\n")
-
-
 def task_1_routine(data: pd.DataFrame) -> NoReturn:
     """
     main function of task 1.2.1
     :param data: Test data to predict
     :return: None
     """
-    model = task_1.code.hackathon_code.utils.model_helper.load_model(MODEL_LOAD_PATH)
+    model = project.task_1.code.hackathon_code.utils.model_helper.load_model(MODEL_LOAD_PATH)
     # Todo: add internal preprocess
     ids = data["h_booking_id"]
     data.drop(["h_booking_id"])
