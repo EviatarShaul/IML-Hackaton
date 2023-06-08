@@ -184,7 +184,7 @@ def get_dummies_preprocess(df: pd.DataFrame) -> Tuple[pd.DataFrame, Dict]:
 
 
 
-cols_to_drop = ['booking_datetime', 'checkin_date', 'checkout_date', 'hotel_live_date', 'original_selling_currency',
+cols_to_drop = ['booking_datetime', 'checkin_date', 'checkout_date', 'hotel_live_date', 'original_payment_currency',
                 'original_payment_method']
 
 
