@@ -15,10 +15,10 @@ import numpy as np
 import project.task_1.code.hackathon_code.utils.model_helper
 from project.task_1.code.hackathon_code.utils.csv_helper import *
 from project.task_1.code.hackathon_code.utils.preprocess import *
+from project.task_1.code.hackathon_code.utils.model_helper import *
 import joblib
-
-MODEL_LOAD_PATH = ""  # todo add model path
-MODEL_SAVE_PATH = ""  # todo add model path
+MODEL_SAVE_PATH = "task_1/code/hackathon_code/task_2_model_weights.sav"
+MODEL_LOAD_PATH = "task_1/code/hackathon_code/task_2_model_weights.sav"
 
 LABEL_NAME = "predicted_selling_amount"
 
@@ -28,7 +28,7 @@ def task_2_routine(data: pd.DataFrame):
     :param data:
     :return:
     """
-    model = task_1.code.hackathon_code.utils.model_helper.load_model(MODEL_LOAD_PATH)
+    model = load_model(MODEL_LOAD_PATH)
     ids = data["h_booking_id"]
     data.drop(["h_booking_id"])
     # Todo: add internal preprocess
