@@ -65,49 +65,60 @@ def temp_classify_cancellation_prediction(raw_data: pd.DataFrame, validate: pd.D
     print("when picking all 0 - error is: " +
           str(f1_score(y_test, np.ones(y_test.shape[0]), average="macro")))
 
+    classifier = RandomForestClassifier
+    display_errors(X_test, X_train, X_val, classifier, list(range(1, 15)), y_test,
+                   y_train, y_val, r"Random Forest Classifier - "
+                                   r"Number of classifiers as a function of f1 score "
+                                   r"on train\validation\test data")
+
+    # TODO: older classifiers (lesser than randomForest):
     # classifier = KNeighborsClassifier
     # display_errors(X_test, X_train, X_val, classifier, list(range(1, 20)), y_test,
     #                y_train, y_val, "k-nn")
-
-    classifier = RandomForestClassifier
-    display_errors(X_test, X_train, X_val, classifier, list(range(1, 25)), y_test,
-                   y_train, y_val, "Random Forest")
-
     # classifier = lambda x: DecisionTreeClassifier(max_depth=x)
     # display_errors(X_test, X_train, X_val, classifier, list(range(1, 25)), y_test,
     #                y_train, y_val, "Decision Tree")
 
-    classify_cancellation_prediction(X_train, y_train, X_test, y_test)
+    # TODO: older version that uses simpler classifiers:
+    # classify_cancellation_prediction(X_train, y_train, X_test, y_test)
 
 
 def display_errors(X_test, X_train, X_val, classifier, k_range, y_test,
                    y_train, y_val, name):
+    # Calculating error for each k in k_range on train, validate and test sets
     train_errors, val_errors, test_errors = [], [], []
     for k in k_range:
         model = classifier(k).fit(X_train, y_train)
         train_errors.append(f1_score(y_train, model.predict(X_train), average="macro"))
         val_errors.append(f1_score(y_val, model.predict(X_val), average="macro"))
         test_errors.append(f1_score(y_test, model.predict(X_test), average="macro"))
+
+    # finding the argument of the maximal value
     val_errors = np.array(val_errors)
     max_ind = np.argmax(val_errors)
     selected_k = np.array(k_range)[max_ind]
     selected_error = val_errors[max_ind]
-    mean, std = val_errors, np.std(val_errors, axis=0)
+
+    # displaying the graph of the f1 score on the train\validate\test sets
     go.Figure([
-        go.Scatter(name='Train Error', x=k_range, y=train_errors,
+        go.Scatter(name='Train Score', x=k_range, y=train_errors,
                    mode='markers+lines', marker_color='rgb(152,171,150)'),
-        go.Scatter(name='Mean Validation Error', x=k_range, y=mean,
+        go.Scatter(name='Validation Score', x=k_range, y=val_errors,
                    mode='markers+lines', marker_color='rgb(220,179,144)'),
-        go.Scatter(name='Test Error', x=k_range, y=test_errors,
+        go.Scatter(name='Test Score', x=k_range, y=test_errors,
                    mode='markers+lines', marker_color='rgb(25,115,132)'),
         go.Scatter(name='Selected Model', x=[selected_k], y=[selected_error],
                    mode='markers',
                    marker=dict(color='darkred', symbol="x", size=10))
     ]).update_layout(
-        title=name,
-        xaxis_title=r"k",
-        yaxis_title=r"$\text{f1_score}$").show()
+        title=r"$\text{" + name + r"}$",
+        xaxis_title=r"$\text{Number of base estimators}$",
+        yaxis_title=r"$\text{f1 macro score}$").show()
 
+    # After running 10-20 iterations, we saw that for k= ~11-13 we
+    # maximize the f1 macro score:
+    model = classifier(11).fit(X_train, y_train)
+    save_model(model, MODEL_SAVE_PATH)
 
 def classify_cancellation_prediction(X_train, y_train, X_test, y_test):
     # defining models to predict:
