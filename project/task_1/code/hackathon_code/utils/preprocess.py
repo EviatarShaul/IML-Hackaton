@@ -1,9 +1,14 @@
+import datetime
 import numpy as np
 import pandas as pd
 import csv
 import random
 import os
 from typing import List, Optional, Tuple
+from currency_converter import CurrencyConverter
+
+# Initializing a Currency Converter
+currency_converter = CurrencyConverter()
 
 
 def create_x_y_df(df: pd.DataFrame, x_columns: List[str], label_column: str = None) -> Tuple[
@@ -20,6 +25,27 @@ def create_x_y_df(df: pd.DataFrame, x_columns: List[str], label_column: str = No
             Responses corresponding samples in data frame.
     """
     return df[x_columns], df[label_column] if label_column is not None else df[x_columns]
+
+
+def convert_currency_to_usd(amount: float, curr: str, date: datetime.date) -> float:
+    """
+    Converts a given currency to USD based on its value at a given date.
+
+    Parameters:
+    - amount (float): The amount of currency to be converted.
+    - curr (str): The currency code of the currency to be converted.
+    - date (datetime.date): The trade date for which the currency conversion should be performed.
+
+    Returns:
+    - float: The converted amount in USD.
+
+    Note:
+    - This function relies on an external currency converter library named `currency_converter`.
+    - The `currency_converter` library should be installed and imported before using this function as requested
+        the requirements file.
+    """
+
+    return currency_converter.convert(amount=amount, currency=curr, new_currency='USD', date=date)
 
 
 def divide_csv_file(path, divisions, randomize):
@@ -77,6 +103,8 @@ def create_additional_cols(df: pd.DataFrame) -> pd.DataFrame:
     :param df: dataframe to be processed
     :return: the dataframe with additional columns
     """
+    #added for merging
+
     # Convert the columns to datetime objects
     df['booking_datetime'] = pd.to_datetime(df['booking_datetime'])
     df['checkin_date'] = pd.to_datetime(df['checkin_date'])
