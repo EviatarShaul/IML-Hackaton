@@ -4,6 +4,10 @@ import csv
 import random
 import os
 from typing import List, Optional, Tuple
+from currency_converter import CurrencyConverter
+
+# Initializing a Currency Converter
+currency_converter = CurrencyConverter()
 
 
 def create_x_y_df(df: pd.DataFrame, x_columns: List[str], label_column: str = None) -> Tuple[
@@ -20,10 +24,6 @@ def create_x_y_df(df: pd.DataFrame, x_columns: List[str], label_column: str = No
             Responses corresponding samples in data frame.
     """
     return df[x_columns], df[label_column] if label_column is not None else df[x_columns]
-from currency_converter import CurrencyConverter
-
-# Initializing a Currency Converter
-currency_converter = CurrencyConverter()
 
 
 def convert_currency_to_usd(amount: float, curr: str, date: datetime.date) -> float:
