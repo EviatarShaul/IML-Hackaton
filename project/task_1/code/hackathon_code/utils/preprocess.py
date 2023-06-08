@@ -2,6 +2,23 @@ import pandas as pd
 import csv
 import random
 import os
+from typing import List, Optional, Tuple
+
+
+def create_x_y_df(df: pd.DataFrame, x_columns: List[str], label_column: str = None) -> Tuple[
+    pd.DataFrame, Optional[pd.Series]]:
+    """
+    :param df: Raw data split to
+    :param label_column: the y feature
+    :param x_columns: select row to design the matrix with
+    :return:
+            X: DataFrame of shape (n_samples, n_features)
+                Data frame of samples and feature values.
+            
+            y: Series of shape (n_samples, )
+            Responses corresponding samples in data frame.
+    """
+    return df[x_columns], df[label_column] if label_column is not None else df[x_columns]
 
 
 def divide_csv_file(path, divisions, randomize):
