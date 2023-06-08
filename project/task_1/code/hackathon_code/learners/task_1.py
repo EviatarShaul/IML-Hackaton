@@ -171,6 +171,5 @@ def task_1_routine(data: pd.DataFrame) -> NoReturn:
     # Todo: add internal preprocess
     ids = data["h_booking_id"]
     data.drop(["h_booking_id"])
-    # data = internal_preprocess(data)
     pred = model.predict(data)
     helper_write_csv(ids, pred, "agoda_cancellation_prediction.csv", "cancellation")
