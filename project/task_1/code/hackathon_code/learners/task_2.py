@@ -12,11 +12,14 @@ from sklearn.discriminant_analysis import LinearDiscriminantAnalysis, \
     QuadraticDiscriminantAnalysis
 import pandas as pd
 import numpy as np
+
+import project.task_1.code.hackathon_code.utils.model_helper
 from project.task_1.code.hackathon_code.utils.csv_helper import *
 from project.task_1.code.hackathon_code.utils.preprocess import *
 import joblib
 
-MODEL_PATH = ""  # todo add model path
+MODEL_LOAD_PATH = ""  # todo add model path
+MODEL_SAVE_PATH = ""  # todo add model path
 
 LABEL_NAME = "predicted_selling_amount"
 
@@ -26,7 +29,7 @@ def task_2_routine(data: pd.DataFrame):
     :param data:
     :return:
     """
-    model = joblib.load(MODEL_PATH)
+    model = task_1.code.hackathon_code.utils.model_helper.load_model(MODEL_LOAD_PATH)
     # Todo: add internal preprocess
     # data = internal_preprocess(data)
     pred = model.predict(data)
