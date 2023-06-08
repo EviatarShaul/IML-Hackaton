@@ -162,7 +162,7 @@ def generic_preprocess(df: pd.DataFrame) -> Tuple[pd.DataFrame, Dict]:
     return df, {}
 
 
-def preprocess_currency(df):
+def preprocess_currency(df: pd.DataFrame):
     """
     Preprocesses a currency dataframe by converting the original selling amount to USD.
 
@@ -192,3 +192,14 @@ def preprocess_currency(df):
     df = df.drop(columns=['original_selling_amount', 'original_payment_currency'])
     return df
 
+
+def preprocess_row_policy(cancellation_policy_code : pd.Series, days_from_order_to_checkin : pd.Timedelta):
+    pass
+
+
+def preprocess_hotel_policy(df: pd.DataFrame):
+    df['cancellation_policy_code'] = df.apply(lambda row: preprocess_row_policy(
+        row['cancellation_policy_code'],
+        (pd.to_datetime(row['checkout_date']) - pd.to_datetime(row['checkin_date']) / pd.Timedelta(days=1))),
+                                              axis=1)
+    return df
