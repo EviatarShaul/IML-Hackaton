@@ -15,6 +15,9 @@ import pandas as pd
 import numpy as np
 from project.task_1.code.hackathon_code.utils.csv_helper import *
 from project.task_1.code.hackathon_code.utils.preprocess import *
+
+MODEL_SAVE_PATH = ""  # todo add model path
+MODEL_LOAD_PATH = ""  # todo add model path
 import plotly.graph_objects as go
 
 LABEL_NAME = "cancellation_datetime"
@@ -167,8 +170,19 @@ def classify_cancellation_prediction(X_train, y_train, X_test, y_test):
         models[i].fit(X_train, y_train)
         pred = models[i].predict(X_test)
         model_f1_train_error = f1_score(y_test, pred)
-        print(
-            f"Model: {model_names[i]}:\n\tTrain Error: {model_f1_train_error}\n")
+        print(f"Model: {model_names[i]}:\n\tTrain Error: {model_f1_train_error}\n")
 
-    helper_write_csv(None, pred, "agoda_cancellation_prediction.csv",
-                     "cancellation")"""
+
+def task_1_routine(data: pd.DataFrame) -> NoReturn:
+    """
+    main function of task 1.2.1
+    :param data: Test data to predict
+    :return: None
+    """
+    model = task_1.code.hackathon_code.utils.model_helper.load_model(MODEL_LOAD_PATH)
+    # Todo: add internal preprocess
+    ids = data["h_booking_id"]
+    data.drop(["h_booking_id"])
+    # data = internal_preprocess(data)
+    pred = model.predict(data)
+    helper_write_csv(ids, pred, "agoda_cancellation_prediction.csv", "cancellation")
