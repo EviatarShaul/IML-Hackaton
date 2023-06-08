@@ -11,7 +11,7 @@ from sklearn.discriminant_analysis import LinearDiscriminantAnalysis, \
     QuadraticDiscriminantAnalysis
 import pandas as pd
 import numpy as np
-
+from project.task_1.code.hackathon_code.utils.csv_helper import *
 from project.task_1.code.hackathon_code.utils.preprocess import *
 
 
@@ -135,9 +135,6 @@ def classify_cancellation_prediction(X_train, y_train, X_test, y_test):
         # model_test_error = 1 - models[i].fit(X_train, y_train).score(X_test, y_test)
         # print(f"Model: {model_names[i]}:\n\tTrain Error: {model_train_error}\n\tTest Error: {model_test_error}\n")
 
-
-def write_answer(ids: pd.Series, predicted: np.ndarray, path: str):
-    pass
-
+    helper_write_csv(None,pred,"agoda_cancellation_prediction.csv","cancellation")
 
 
