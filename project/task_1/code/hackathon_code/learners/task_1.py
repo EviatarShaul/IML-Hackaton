@@ -122,7 +122,7 @@ def classify_cancellation_prediction(X_train, y_train, X_test, y_test):
         errors.append(model_f1_train_error)
         print(
             f"Model: {model_names[i]}:\n\tTrain Error: {model_f1_train_error}\n")
-
+    # 21
     errors.append("now changed to binary!")
     d = {}
     for i in range(len(errors)):
