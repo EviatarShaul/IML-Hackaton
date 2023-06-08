@@ -3,7 +3,8 @@ import plotly.graph_objects as go
 from typing import NoReturn
 import sklearn.linear_model
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import f1_score
+from sklearn.ensemble import AdaBoostClassifier
+from sklearn.metrics import mean_squared_error
 from sklearn.model_selection import train_test_split
 from sklearn.svm import SVC
 from sklearn.neighbors import KNeighborsClassifier
@@ -21,6 +22,21 @@ from project.task_1.code.hackathon_code.utils.model_helper import *
 import joblib
 MODEL_SAVE_PATH = "task_1/code/hackathon_code/task_2_model_weights.sav"
 MODEL_LOAD_PATH = "task_1/code/hackathon_code/task_2_model_weights.sav"
+
+TASK_1_LABEL_NAME = "cancellation_datetime"
+TASK_1_DATAFRAME_IMPORTANT_COLS = ["guest_is_not_the_customer",
+                            "no_of_adults",
+                            "no_of_children",
+                            "no_of_extra_bed",
+                            "no_of_room",
+                            "time_from_booking_to_checkin",
+                            "stay_duration",
+                            "is_weekday",
+                            "checkin_month_sin",
+                            "checkin_month_cos",
+                            "hotel_age",
+                            "hotel_star_rating",
+                            "special_requests"]
 
 LABEL_NAME = "original_selling_amount"
 DATAFRAME_IMPORTANT_COLS = ["guest_is_not_the_customer",
@@ -42,6 +58,24 @@ DATAFRAME_IMPORTANT_COLS = ["guest_is_not_the_customer",
 CATEGORICAL_COLS = ["charge_option_", "accommadation_type_name", "original_payment_type_"]
 
 
+def cancellation_fit(raw_data: pd.DataFrame, temp) -> RandomForestClassifier:
+    for col in raw_data.columns:
+        for prefix in CATEGORICAL_COLS:
+            if col.startswith(prefix):
+                TASK_1_DATAFRAME_IMPORTANT_COLS.append(col)
+
+    X_train, y_train = create_x_y_df(raw_data, TASK_1_DATAFRAME_IMPORTANT_COLS,
+                                     TASK_1_LABEL_NAME)
+
+    print(set(temp.columns) - set(X_train.columns))
+    # changing y_train: where 1 indicating that a cancellation is predicted, and 0 otherwise
+    y_train = np.where(pd.Series(y_train).isnull(), 0, 1)
+
+    model = RandomForestClassifier(11)
+    model.fit(X_train, y_train)
+    return model
+
+
 def explore_predict_selling_amount(raw_data: pd.DataFrame, validate: pd.DataFrame, test: pd.DataFrame):
     # Adding dummies to important features list
     for col in raw_data.columns:
@@ -56,6 +90,10 @@ def explore_predict_selling_amount(raw_data: pd.DataFrame, validate: pd.DataFram
     X_test, y_test = create_x_y_df(test, DATAFRAME_IMPORTANT_COLS,
                                    LABEL_NAME)
 
+    cancel_model: RandomForestClassifier = cancellation_fit(raw_data, X_test)
+    cancel_pred = cancel_model.predict(X_test.drop(columns=[LABEL_NAME]))
+
+
     # TODO: this part should be done in the INTERNAL pre-processing part!
     # changing y_train: where 1 indicating that a cancellation is predicted, and 0 otherwise
     # y_train = np.where(pd.Series(y_train).isnull(), 0, 1)
@@ -63,17 +101,24 @@ def explore_predict_selling_amount(raw_data: pd.DataFrame, validate: pd.DataFram
     # y_test = np.where(pd.Series(y_test).isnull(), 0, 1)
 
     # TODO: f1_score of picking randomly and of choosing all 0
-    print("when picking randomly - error is: " +
-          str(f1_score(y_test,
-                       np.round(np.random.random(y_test.shape[0])), average="macro")))
-    print("when picking all 0 - error is: " +
-          str(f1_score(y_test, np.ones(y_test.shape[0]), average="macro")))
 
-    classifier = RandomForestClassifier
-    display_errors(X_test, X_train, X_val, classifier, list(range(1, 15)), y_test,
-                   y_train, y_val, r"Random Forest Classifier - "
-                                   r"Number of classifiers as a function of f1 score "
-                                   r"on train\validation\test data")
+    print("when picking randomly - error is: " +
+          str(mean_squared_error(y_test,
+                                 np.round(np.random.random(y_test.shape[0]) * y_train.max()), squared=False)))
+    print("when picking all 0 - error is: " +
+          str(mean_squared_error(y_test, np.ones(y_test.shape[0]) * y_train.mean(), squared=False)))
+
+
+    model = AdaBoostClassifier()
+    model.fit(X_train, y_train)
+    pred = model.predict(X_test)
+    print(mean_squared_error(y_test,pred))
+
+    # classifier = RandomForestClassifier
+    # display_errors(X_test, X_train, X_val, classifier, list(range(1, 15)), y_test,
+    #                y_train, y_val, r"Random Forest Classifier - "
+    #                                r"Number of classifiers as a function of f1 score "
+    #                                r"on train\validation\test data")
 
     # TODO: older classifiers (lesser than randomForest):
     # classifier = KNeighborsClassifier
@@ -86,6 +131,10 @@ def explore_predict_selling_amount(raw_data: pd.DataFrame, validate: pd.DataFram
     # TODO: older version that uses simpler classifiers:
     # classify_cancellation_prediction(X_train, y_train, X_test, y_test)
 
+    result = np.where(cancel_pred == 1, -1, pred)
+    print(mean_squared_error(y_test,result))
+    return result
+
 
 def display_errors(X_test, X_train, X_val, classifier, k_range, y_test,
                    y_train, y_val, name):
@@ -93,9 +142,9 @@ def display_errors(X_test, X_train, X_val, classifier, k_range, y_test,
     train_errors, val_errors, test_errors = [], [], []
     for k in k_range:
         model = classifier(k).fit(X_train, y_train)
-        train_errors.append(f1_score(y_train, model.predict(X_train), average="macro"))
-        val_errors.append(f1_score(y_val, model.predict(X_val), average="macro"))
-        test_errors.append(f1_score(y_test, model.predict(X_test), average="macro"))
+        train_errors.append(mean_squared_error(y_train, model.predict(X_train), squared=False))
+        val_errors.append(mean_squared_error(y_val, model.predict(X_val), squared=False))
+        test_errors.append(mean_squared_error(y_test, model.predict(X_test), squared=False))
 
     # finding the argument of the maximal value
     val_errors = np.array(val_errors)
@@ -121,38 +170,41 @@ def display_errors(X_test, X_train, X_val, classifier, k_range, y_test,
 
     # After running 10-20 iterations, we saw that for k= ~11-13 we
     # maximize the f1 macro score:
-    model = classifier(11).fit(X_train, y_train)
-    save_model(model, MODEL_SAVE_PATH)
+    # TODO: Save classifier weights:
+    # model = classifier(11).fit(X_train, y_train)
+    # save_model(model, MODEL_SAVE_PATH)
 
 
 def classify_cancellation_prediction(X_train, y_train, X_test, y_test):
     # defining models to predict:
     models = [
-        LogisticRegression(),
-        # LogisticRegression(penalty=f1_score),
+        LogisticRegression(max_iter=35),
         DecisionTreeClassifier(max_depth=5),
         KNeighborsClassifier(n_neighbors=1),
         KNeighborsClassifier(n_neighbors=3),
-        SVC(kernel='poly', probability=True, max_iter=50),
+        # SVC(kernel='linear', probability=True, max_iter=5),
         LinearDiscriminantAnalysis(store_covariance=True),
-        QuadraticDiscriminantAnalysis(store_covariance=True),
+        # QuadraticDiscriminantAnalysis(store_covariance=True),
         RandomForestClassifier(n_estimators=7)
     ]
-    model_names = ["Logistic regression", "Desicion Tree (Depth 5)", "KNN(1)",
+    model_names = ["Logistic regression",
+                   "Desicion Tree (Depth 5)", "KNN(1)",
                    "KNN(3)",
-                   "Linear SVM",
-                   "LDA", "QDA", "Random Forest (7)", "What changed?"]
-    all_methods_scores = pd.DataFrame()
+                   # "Linear SVM",
+                   "LDA",
+                   # "QDA",
+        "Random Forest (7)", "What changed?"]
     errors = []
+
     # training regressors on the model:
     for i in range(len(models)):
-        models[i].fit(X_train, y_train)
+        models[i].fit(X_train, y_train.astype(int))
         pred = models[i].predict(X_test)
-        model_f1_train_error = f1_score(y_test, pred, average="macro")
-        errors.append(model_f1_train_error)
+        model_train_error = mean_squared_error(y_test, pred, squared=False)
+        errors.append(model_train_error)
         print(
-            f"Model: {model_names[i]}:\n\tTrain Error: {model_f1_train_error}\n")
-    # 21
+            f"Model: {model_names[i]}:\n\tTrain Error: {model_train_error}\n")
+
     errors.append("added dummies")
     d = {}
     for i in range(len(errors)):
@@ -163,6 +215,7 @@ def classify_cancellation_prediction(X_train, y_train, X_test, y_test):
     joblib.dump(df, 'errors_df.sav')
 
     print(df.to_string())
+
 
 def task_2_routine(data: pd.DataFrame):
     """
