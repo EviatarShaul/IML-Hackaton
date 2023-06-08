@@ -17,6 +17,8 @@ from project.task_1.code.hackathon_code.learners.task_3 import \
     churn_prediction_model
 from project.task_1.code.hackathon_code.learners.task_1 import \
     temp_classify_cancellation_prediction
+from task_1.code.hackathon_code.learners.task_2 import \
+    explore_predict_selling_amount
 
 SEED = 420420
 
@@ -26,9 +28,11 @@ DATA_75_PATH = r'../../../instructions/divisions/agoda_train_2_from_4.csv'
 DATA_100_PATH = r'../../../instructions/divisions/agoda_train_3_from_4.csv'
 DATA_ORIG_PATH = r'../../../instructions/agoda_cancellation_train.csv'
 
+
 def explore():
     data1 = csv_helper.read_csv_to_dataframe(DATA_25_PATH)
     data2 = csv_helper.read_csv_to_dataframe(DATA_50_PATH)
+    # data3 = csv_helper.read_csv_to_dataframe(DATA_75_PATH)
     data = pd.concat([data1, data2])
     data, default_values = preprocess.generic_preprocess(data)
 
@@ -39,10 +43,10 @@ def explore():
     data = pd.concat([data1, data2])
 
     # Q1:
-    temp_classify_cancellation_prediction(data, validate, test)
-    # classify_cancellation_prediction(data)
+    # temp_classify_cancellation_prediction(data, validate, test)
 
     # Q2:
+    explore_predict_selling_amount(data, validate, test)
 
     # Q3:
     # churn_prediction_model(data)

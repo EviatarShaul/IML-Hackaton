@@ -16,10 +16,10 @@ import numpy as np
 from project.task_1.code.hackathon_code.utils.csv_helper import *
 from project.task_1.code.hackathon_code.utils.preprocess import *
 from project.task_1.code.hackathon_code.utils.model_helper import *
-
-MODEL_SAVE_PATH = "task_1/code/hackathon_code/task_1_model_weights.sav"
-MODEL_LOAD_PATH = "task_1/code/hackathon_code/task_1_model_weights.sav"
 import plotly.graph_objects as go
+
+MODEL_SAVE_PATH = "task_1_model_weights.sav"
+MODEL_LOAD_PATH = "task_1_model_weights.sav"
 
 LABEL_NAME = "cancellation_datetime"
 DATAFRAME_IMPORTANT_COLS = ["guest_is_not_the_customer",
@@ -120,6 +120,7 @@ def display_errors(X_test, X_train, X_val, classifier, k_range, y_test,
     # maximize the f1 macro score:
     model = classifier(11).fit(X_train, y_train)
     save_model(model, MODEL_SAVE_PATH)
+
 
 def classify_cancellation_prediction(X_train, y_train, X_test, y_test):
     # defining models to predict:
