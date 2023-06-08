@@ -1,6 +1,5 @@
 # Task 1.2.2
 from typing import NoReturn
-
 import sklearn.linear_model
 from sklearn.metrics import f1_score
 from sklearn.model_selection import train_test_split
