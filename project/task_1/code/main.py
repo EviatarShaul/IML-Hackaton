@@ -18,4 +18,23 @@ if __name__ == "__main__":
     data = project.task_1.code.hackathon_code.utils.csv_helper.read_csv_to_dataframe(DATA_25_PATH)
     data, default_values = preprocess.generic_preprocess(data)
     temp_classify_cancellation_prediction(data)
-    print(data.head(30))
+    # # Task 1
+    # try:
+    #     task_1.code.hackathon_code.learners.task_1.task_1_routine(data)
+    # except Exception as e:
+    #     pass
+    # # Task 2
+    # try:
+    #     task_1.code.hackathon_code.learners.task_2.task_2_routine(data)
+    # except Exception as e:
+    #     pass
+    # # Task 3
+    # try:
+    #     task_1.code.hackathon_code.learners.task_3.task_3_routine(data)
+    # except Exception as e:
+    #     pass
+    # # Task 4
+    # try:
+    #     task_1.code.hackathon_code.learners.task_4.task_4_routine(data)
+    # except Exception as e:
+    #     pass
