@@ -157,9 +157,38 @@ def generic_preprocess(df: pd.DataFrame) -> Tuple[pd.DataFrame, Dict]:
     :return: a tuple of the processed dataframe and the dictionary of the columns and their default values
     """
     df = create_additional_cols(df)
+    df = preprocess_currency(df)
+
+    return df, {}
+
+
+def preprocess_currency(df):
+    """
+    Preprocesses a currency dataframe by converting the original selling amount to USD.
+
+    Parameters:
+    - df (pd.DataFrame): The currency dataframe to be preprocessed.
+
+    Returns:
+    - pd.DataFrame: The preprocessed currency dataframe.
+
+    Note:
+    - This function relies on an external function named `convert_currency_to_usd` and the pandas library.
+    - The `convert_currency_to_usd` function should be defined and imported before using this function.
+    - The dataframe should contain columns named 'original_selling_amount', 'original_payment_currency',
+      and 'booking_datetime' for the conversion.
+
+    Example:
+
+      booking_datetime  cost
+    0       2023-06-08   118.54
+    1       2023-06-09   238.08
+    2       2023-06-10   150.00
+
+    """
     df["cost"] = df.apply(lambda row: convert_currency_to_usd(row["original_selling_amount"],
                                                               row["original_payment_currency"],
                                                               pd.to_datetime(row["booking_datetime"])), axis=1)
     df = df.drop(columns=['original_selling_amount', 'original_payment_currency'])
+    return df
 
-    return df, {}
