@@ -13,7 +13,7 @@ currency_converter = CurrencyConverter(fallback_on_wrong_date=True, fallback_on_
 
 
 def create_x_y_df(df: pd.DataFrame, x_columns: List[str], label_column: str = None) -> Tuple[
-    pd.DataFrame, Optional[pd.Series]]:
+        pd.DataFrame, Optional[pd.Series]]:
     """
     :param df: Raw data split to
     :param label_column: the y feature
@@ -168,8 +168,7 @@ def get_dummies_preprocess(df: pd.DataFrame) -> Tuple[pd.DataFrame, Dict]:
         dist = df[col].value_counts(normalize=True)
         defualt_values[col] = dist
         df = pd.concat([df, pd.get_dummies(df[col], prefix=col, dtype=float)], axis=1)
-        if df[
-            col].isnull().values.any():  # if there are null values in the column, fill dummies with approximate values
+        if df[col].isnull().values.any():  # if there are null values in the column, fill dummies with approximate values
             df.loc[df[col].isnull(), df.columns.str.startswith(col)] = np.nan
             for val in dist.index:
                 df[col + '_' + str(val)].fillna(dist[val], inplace=True)
@@ -183,9 +182,8 @@ def get_dummies_preprocess(df: pd.DataFrame) -> Tuple[pd.DataFrame, Dict]:
 # todo - check hotel_country_code vs (hotel_area_code and hotel_city_code)
 
 
-
 cols_to_drop = ['booking_datetime', 'checkin_date', 'checkout_date', 'hotel_live_date', 'original_payment_currency',
-                'original_payment_method']
+                'original_payment_method','h_customer_id']
 
 
 def generic_preprocess(df: pd.DataFrame) -> Tuple[pd.DataFrame, Dict]:

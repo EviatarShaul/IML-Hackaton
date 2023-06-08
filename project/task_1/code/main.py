@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
+from project.task_1.code.hackathon_code.utils import csv_helper
 
 import project.task_1.code.hackathon_code.utils.csv_helper
 import project.task_1.code.hackathon_code.utils.preprocess as preprocess
@@ -22,12 +23,13 @@ DATA_ORIG_PATH = r'../../../instructions/agoda_cancellation_train.csv'
 
 def explore():
     np.random.seed(SEED)
-    data1 = project.task_1.code.hackathon_code.utils.csv_helper.read_csv_to_dataframe(
-        DATA_25_PATH)
-    data2 = project.task_1.code.hackathon_code.utils.csv_helper.read_csv_to_dataframe(
-        DATA_50_PATH)
-    data1, default_values = preprocess.generic_preprocess(data1)
-    data2, default_values = preprocess.generic_preprocess(data2)
+    data1 = csv_helper.read_csv_to_dataframe(DATA_25_PATH)
+    data2 = csv_helper.read_csv_to_dataframe(DATA_50_PATH)
+    data = pd.concat([data1, data2])
+    data, default_values = preprocess.generic_preprocess(data)
+
+    # split data into 2 parts by row
+    data1, data2 = data.iloc[:int(len(data) / 2)], data.iloc[int(len(data) / 2):]
     temp, test = train_test_split(data2, test_size=0.3)
     data2, validate = train_test_split(temp, test_size=0.5)
     data = pd.concat([data1, data2])
