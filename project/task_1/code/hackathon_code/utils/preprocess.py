@@ -4,11 +4,11 @@ import pandas as pd
 import csv
 import random
 import os
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Dict
 from currency_converter import CurrencyConverter
 
 # Initializing a Currency Converter
-currency_converter = CurrencyConverter()
+currency_converter = CurrencyConverter(fallback_on_wrong_date=True, fallback_on_missing_rate=True)
 
 
 def create_x_y_df(df: pd.DataFrame, x_columns: List[str], label_column: str = None) -> Tuple[
@@ -27,7 +27,7 @@ def create_x_y_df(df: pd.DataFrame, x_columns: List[str], label_column: str = No
     return df[x_columns], df[label_column] if label_column is not None else df[x_columns]
 
 
-def convert_currency_to_usd(amount: float, curr: str, date: datetime.date) -> float:
+def convert_currency_to_usd(amount: float, curr: str, date: datetime.date):
     """
     Converts a given currency to USD based on its value at a given date.
 
@@ -44,8 +44,11 @@ def convert_currency_to_usd(amount: float, curr: str, date: datetime.date) -> fl
     - The `currency_converter` library should be installed and imported before using this function as requested
         the requirements file.
     """
-
-    return currency_converter.convert(amount=amount, currency=curr, new_currency='USD', date=date)
+    if curr in currency_converter.currencies:
+        return currency_converter.convert(amount=amount, currency=curr, new_currency='USD', date=date)
+    else:
+        return np.mean([currency_converter.convert(amount=amount, currency=c, new_currency='USD', date=date) for c in
+                        currency_converter.currencies], axis=0)
 
 
 def divide_csv_file(path, divisions, randomize):
@@ -97,13 +100,21 @@ def read_csv_to_dataframe(path: str) -> pd.DataFrame:
     return pd.read_csv(path)
 
 
+def create_dummies(df: pd.DataFrame, columns: List[str]) -> pd.DataFrame:
+    """
+    :param df: Raw data split to
+    :param columns: List of columns to create dummies for
+    :return: A pandas DataFrame object containing the data from the CSV file
+    """
+    return pd.get_dummies(df, columns=columns)
+
+
 def create_additional_cols(df: pd.DataFrame) -> pd.DataFrame:
     """
     create additional columns for the dataframe
     :param df: dataframe to be processed
     :return: the dataframe with additional columns
     """
-    #added for merging
 
     # Convert the columns to datetime objects
     df['booking_datetime'] = pd.to_datetime(df['booking_datetime'])
@@ -129,6 +140,7 @@ def create_additional_cols(df: pd.DataFrame) -> pd.DataFrame:
     df['hotel_age'] = (pd.to_datetime(df['booking_datetime']) - pd.to_datetime(
         df['hotel_live_date'])) / pd.Timedelta(days=365)
 
+    # todo - move function?
     # Create a new column for the sum of special requests
     special_requests = ['request_nonesmoke', 'request_latecheckin', 'request_highfloor', 'request_largebed',
                         'request_twinbeds', 'request_airport']
@@ -136,3 +148,18 @@ def create_additional_cols(df: pd.DataFrame) -> pd.DataFrame:
     for request in special_requests:
         df['special_requests'] += df[request]
     return df
+
+
+def generic_preprocess(df: pd.DataFrame) -> Tuple[pd.DataFrame, Dict]:
+    """
+    runs the generic preprocess on the data
+    :param df: the dataframe to be processed
+    :return: a tuple of the processed dataframe and the dictionary of the columns and their default values
+    """
+    df = create_additional_cols(df)
+    df["cost"] = df.apply(lambda row: convert_currency_to_usd(row["original_selling_amount"],
+                                                              row["original_payment_currency"],
+                                                              pd.to_datetime(row["booking_datetime"])), axis=1)
+    df = df.drop(columns=['original_selling_amount', 'original_payment_currency'])
+
+    return df, {}

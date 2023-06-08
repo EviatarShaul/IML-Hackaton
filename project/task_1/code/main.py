@@ -13,5 +13,5 @@ DATA_ORIG_PATH = r'../../../instructions/agoda_cancellation_train.csv'
 if __name__ == "__main__":
     np.random.seed(SEED)
     data = preprocess.read_csv_to_dataframe(DATA_25_PATH)
-    data = preprocess.create_additional_cols(data)
+    data = preprocess.generic_preprocess(data)
     print(data.head(30))
