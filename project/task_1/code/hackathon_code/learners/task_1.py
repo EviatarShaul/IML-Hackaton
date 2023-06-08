@@ -151,6 +151,8 @@ def task_1_routine(data: pd.DataFrame) -> NoReturn:
     """
     model = task_1.code.hackathon_code.utils.model_helper.load_model(MODEL_LOAD_PATH)
     # Todo: add internal preprocess
+    ids = data["h_booking_id"]
+    data.drop(["h_booking_id"])
     # data = internal_preprocess(data)
     pred = model.predict(data)
-    helper_write_csv(data["h_booking_id"], pred, "agoda_cancellation_prediction.csv", "cancellation")
+    helper_write_csv(ids, pred, "agoda_cancellation_prediction.csv", "cancellation")

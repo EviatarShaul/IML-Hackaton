@@ -23,6 +23,7 @@ def main(input_file):
     data, default_values = preprocess.generic_preprocess(data)
     temp_classify_cancellation_prediction(data)
     # todo uncomment before submit
+
     # # Task 1
     # try:
     #     task_1.code.hackathon_code.learners.task_1.task_1_routine(data)

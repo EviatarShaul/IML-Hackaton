@@ -30,6 +30,8 @@ def task_2_routine(data: pd.DataFrame):
     :return:
     """
     model = task_1.code.hackathon_code.utils.model_helper.load_model(MODEL_LOAD_PATH)
+    ids = data["h_booking_id"]
+    data.drop(["h_booking_id"])
     # Todo: add internal preprocess
     # data = internal_preprocess(data)
     pred = model.predict(data)
