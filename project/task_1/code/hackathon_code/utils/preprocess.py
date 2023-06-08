@@ -1,3 +1,4 @@
+import numpy as np
 import pandas as pd
 import csv
 import random
@@ -53,9 +54,6 @@ def read_csv_to_dataframe(path: str) -> pd.DataFrame:
     return pd.read_csv(path)
 
 
-# todo read this!
-#  Data inspection and description - https://docs.google.com/spreadsheets/d/1tw4stK7GWiv9wh7VQ1cY5yMLxOtw4CbX7wdzLQl3JFQ/edit?usp=sharing
-
 def create_additional_cols(df: pd.DataFrame) -> pd.DataFrame:
     """
     create additional columns for the dataframe
@@ -68,26 +66,28 @@ def create_additional_cols(df: pd.DataFrame) -> pd.DataFrame:
     df['checkout_date'] = pd.to_datetime(df['checkout_date'])
 
     # Calculate the time difference and create a new column, in hours
-    # todo - this is where is stopped!
-    df['time_from_booking_to_checkin'] = df['checkin_date'] - df['booking_datetime']
-    df['stay_duration'] = df['checkout_date'] - df['checkin_date']
+    df['time_from_booking_to_checkin'] = (df['checkin_date'] - df['booking_datetime']) / pd.Timedelta(hours=1)
+    df['stay_duration'] = (df['checkout_date'] - df['checkin_date']) / pd.Timedelta(hours=1)
 
-    # Create a new column for number of people in the booking
-    df['num_of_people'] = df['num_of_adults'] + df['num_of_children']
-
-    # Create a new column for the day of the week of the checkin date
-    df['checkin_day_of_week'] = df['checkin_datetime'].dt.dayofweek
+    # Create a new column for whether the booking is on a weekday
+    df['is_weekday'] = df['checkin_date'].dt.dayofweek.isin([0, 1, 2, 3, 4]).astype(int)
 
     # Create a new column for the month of the checkin date
-    df['checkin_month'] = df['checkin_datetime'].dt.month
+    df['checkin_month'] = df['checkin_date'].dt.month
 
-    # Create a new column for the age of the hotel
-    df['hotel_age'] = df['checkin_datetime'].dt.year - df['hotel_live_datetime'].dt.year
+    # Make the month cyclic with sin and cos
+    df['checkin_month_sin'] = np.sin((df['checkin_month'] - 1) * (2. * np.pi / 12))
+    df['checkin_month_cos'] = np.cos((df['checkin_month'] - 1) * (2. * np.pi / 12))
+    df = df.drop(columns=['checkin_month'])
+
+    # Create a new column for the age of the hotel at the time of booking in years
+    df['hotel_age'] = (pd.to_datetime(df['booking_datetime']) - pd.to_datetime(
+        df['hotel_live_date'])) / pd.Timedelta(days=365)
 
     # Create a new column for the sum of special requests
     special_requests = ['request_nonesmoke', 'request_latecheckin', 'request_highfloor', 'request_largebed',
                         'request_twinbeds', 'request_airport']
+    df['special_requests'] = 0
     for request in special_requests:
         df['special_requests'] += df[request]
-
     return df
