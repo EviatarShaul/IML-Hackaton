@@ -93,13 +93,6 @@ def divide_csv_file(path, divisions, randomize):
             writer.writerows(data_rows[start_index:end_index])
 
 
-def read_csv_to_dataframe(path: str) -> pd.DataFrame:
-    """
-    :return: A pandas DataFrame object containing the data from the CSV file
-    """
-    return pd.read_csv(path)
-
-
 def create_dummies(df: pd.DataFrame, columns: List[str]) -> pd.DataFrame:
     """
     :param df: Raw data split to
