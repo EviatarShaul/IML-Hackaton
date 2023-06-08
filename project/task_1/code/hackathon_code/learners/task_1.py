@@ -11,7 +11,7 @@ from sklearn.discriminant_analysis import LinearDiscriminantAnalysis, \
     QuadraticDiscriminantAnalysis
 import pandas as pd
 import numpy as np
-
+from project.task_1.code.hackathon_code.utils.csv_helper import *
 from project.task_1.code.hackathon_code.utils.preprocess import *
 
 
@@ -20,7 +20,16 @@ DATAFRAME_IMPORTANT_COLS = ["guest_is_not_the_customer",
                             "no_of_adults",
                             "no_of_children",
                             "no_of_extra_bed",
-                            "no_of_room"]
+                            "no_of_room",
+                            "cost",
+                            "time_from_booking_to_checkin",
+                            "stay_duration",
+                            "is_weekday",
+                            "checkin_month_sin",
+                            "checkin_month_cos",
+                            "hotel_age",
+                            "special_requests",
+                            ]
 
 
 def temp_classify_cancellation_prediction(raw_data: pd.DataFrame):
@@ -65,9 +74,6 @@ def classify_cancellation_prediction(X_train, y_train, X_test, y_test):
         # model_test_error = 1 - models[i].fit(X_train, y_train).score(X_test, y_test)
         # print(f"Model: {model_names[i]}:\n\tTrain Error: {model_train_error}\n\tTest Error: {model_test_error}\n")
 
-
-def write_answer(ids: pd.Series, predicted: np.ndarray, path: str):
-    pass
-
+    helper_write_csv(None,pred,"agoda_cancellation_prediction.csv","cancellation")
 
 
