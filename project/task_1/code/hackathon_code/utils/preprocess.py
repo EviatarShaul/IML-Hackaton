@@ -112,7 +112,7 @@ def create_additional_cols(df: pd.DataFrame) -> Tuple[DataFrame, Dict[str, Any]]
 
     if "cancellation_datetime" in df.columns:
         df['cancellation_datetime'] = pd.to_datetime(df['cancellation_datetime'])
-        df['time_from_cancellation_to_checkin'] = (df['time_from_cancellation_to_checkin'] - df[
+        df['time_from_cancellation_to_checkin'] = (df['checkin_date'] - df[
             'cancellation_datetime']) / pd.Timedelta(hours=24)
         default_values['time_from_cancellation_to_checkin'] = df['time_from_cancellation_to_checkin'].mean()
 
