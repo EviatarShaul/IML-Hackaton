@@ -13,6 +13,10 @@ import pandas as pd
 import numpy as np
 from project.task_1.code.hackathon_code.utils.csv_helper import *
 from project.task_1.code.hackathon_code.utils.preprocess import *
+import joblib
+
+MODEL_SAVE_PATH = ""  # todo add model path
+MODEL_LOAD_PATH = ""  # todo add model path
 
 
 class AdaBoost:
@@ -139,11 +143,14 @@ def classify_cancellation_prediction(X_train, y_train, X_test, y_test):
         print(f"Model: {model_names[i]}:\n\tTrain Error: {model_f1_train_error}\n")
 
 
-        # p = np.stack([y_test, pred], axis=1)
-        # model_train_error = 1 - models[i].score(X_train, y_train)
-        # model_test_error = 1 - models[i].fit(X_train, y_train).score(X_test, y_test)
-        # print(f"Model: {model_names[i]}:\n\tTrain Error: {model_train_error}\n\tTest Error: {model_test_error}\n")
-
-    helper_write_csv(None,pred,"agoda_cancellation_prediction.csv","cancellation")
-
-
+def task_1_routine(data: pd.DataFrame) -> NoReturn:
+    """
+    main function of task 1.2.1
+    :param data: Test data to predict
+    :return: None
+    """
+    model = task_1.code.hackathon_code.utils.model_helper.load_model(MODEL_LOAD_PATH)
+    # Todo: add internal preprocess
+    # data = internal_preprocess(data)
+    pred = model.predict(data)
+    helper_write_csv(data["h_booking_id"], pred, "agoda_cancellation_prediction.csv", "cancellation")
