@@ -1,15 +1,14 @@
-import datetime
 import numpy as np
 import pandas as pd
 import csv
 import random
 import os
-from typing import List, Optional, Tuple, Dict, Union, Any
-from currency_converter import CurrencyConverter
+from typing import List, Optional, Tuple, Dict, Any
 from pandas import DataFrame
 
-# Initializing a Currency Converter
-currency_converter = CurrencyConverter(fallback_on_wrong_date=True, fallback_on_missing_rate=True)
+DUMMY_COLS = ['accommadation_type_name', 'charge_option', 'original_payment_type']
+COLS_TO_DROP = ['booking_datetime', 'checkin_date', 'checkout_date', 'hotel_live_date', 'original_payment_currency',
+                'original_payment_method', 'h_customer_id']
 
 
 def create_x_y_df(df: pd.DataFrame, x_columns: List[str], label_column: str = None) -> Tuple[
@@ -28,10 +27,15 @@ def create_x_y_df(df: pd.DataFrame, x_columns: List[str], label_column: str = No
     return df[x_columns], df[label_column] if label_column is not None else df[x_columns]
 
 
-def divide_csv_file(path, divisions, randomize):
+def divide_csv_file(path: str, divisions: int, randomize: bool = True) -> None:
+    """
+    Divide a CSV file into multiple divisions, and save each division to a separate file.
+    :param path: the path to the CSV file to divide
+    :param divisions: the number of divisions to create
+    :param randomize: whether to randomize the order of the rows
+    """
     # Get the directory and filename from the input path
     directory = os.path.dirname(path)
-    filename = os.path.basename(path)
 
     # Read the CSV file
     with open(path, 'r') as file:
@@ -79,11 +83,11 @@ def read_csv_to_dataframe(path: str) -> pd.DataFrame:
 
 def create_additional_cols(df: pd.DataFrame) -> tuple[DataFrame, dict[str, Any]]:
     """
-    create additional columns for the dataframe
-    :param df: dataframe to be processed
+    :param df: dataframe to add columns to
     :return: the dataframe with additional columns
     """
-    default_values = {}
+
+    default_values = dict()
     # Convert the columns to datetime objects
     df['booking_datetime'] = pd.to_datetime(df['booking_datetime'])
     df['checkin_date'] = pd.to_datetime(df['checkin_date'])
@@ -130,36 +134,32 @@ def create_additional_cols(df: pd.DataFrame) -> tuple[DataFrame, dict[str, Any]]
     return df, default_values
 
 
-DUMMY_COLS = ['accommadation_type_name', 'charge_option', 'original_payment_type']
-
-
 def get_dummies_preprocess(df: pd.DataFrame) -> Tuple[pd.DataFrame, Dict]:
     """
     runs the get dummies preprocess on the data
     :param df: the dataframe to be processed
     :return: a tuple of the processed dataframe and the dictionary of the columns and their default values
     """
-    defualt_values = {}
+    default_values = {}
     for col in DUMMY_COLS:
         dist = df[col].value_counts(normalize=True)
-        defualt_values[col] = dist
+        default_values[col] = dist
         df = pd.concat([df, pd.get_dummies(df[col], prefix=col, dtype=float)], axis=1)
-        if df[col].isnull().values.any():  # if there are null values in the column, fill dummies with approximate values
+
+        # if there are null values in the column, fill dummies with approximate values by frequency
+        if df[col].isnull().values.any():
             df.loc[df[col].isnull(), df.columns.str.startswith(col)] = np.nan
             for val in dist.index:
                 df[col + '_' + str(val)].fillna(dist[val], inplace=True)
+
         df = df.drop(columns=[col])
 
-    return df, defualt_values
+    return df, default_values
 
 
 # todo - check of original_payment_type or original_payment_method
 # todo - check langauge vs guest_nationality_country_name vs customer_nationality
 # todo - check hotel_country_code vs (hotel_area_code and hotel_city_code)
-
-
-cols_to_drop = ['booking_datetime', 'checkin_date', 'checkout_date', 'hotel_live_date', 'original_payment_currency',
-                'original_payment_method','h_customer_id']
 
 
 def generic_preprocess(df: pd.DataFrame) -> Tuple[pd.DataFrame, Dict]:
@@ -170,9 +170,8 @@ def generic_preprocess(df: pd.DataFrame) -> Tuple[pd.DataFrame, Dict]:
     """
     df, default_values = create_additional_cols(df)
     default_values['original_selling_amount'] = df['original_selling_amount'].mean()
-
     df, dummies_default_values = get_dummies_preprocess(df)
     default_values.update(dummies_default_values)
-    df = df.drop(columns=cols_to_drop)
+    df = df.drop(columns=COLS_TO_DROP)
 
     return df, default_values
