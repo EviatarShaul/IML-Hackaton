@@ -27,7 +27,6 @@ DATA_100_PATH = r'../../../instructions/divisions/agoda_train_3_from_4.csv'
 DATA_ORIG_PATH = r'../../../instructions/agoda_cancellation_train.csv'
 
 def explore():
-    np.random.seed(SEED)
     data1 = csv_helper.read_csv_to_dataframe(DATA_25_PATH)
     data2 = csv_helper.read_csv_to_dataframe(DATA_50_PATH)
     data = pd.concat([data1, data2])
