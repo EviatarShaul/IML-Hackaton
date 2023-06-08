@@ -48,19 +48,20 @@ def temp_classify_cancellation_prediction(raw_data, validate, test):
     y_val = np.where(pd.Series(y_val).isnull(), 0, 1)
     y_test = np.where(pd.Series(y_test).isnull(), 0, 1)
 
+    # TODO: f1_score of picking randomly and of choosing all 0
     print("when picking randomly - error is: " +
-          str(1 - f1_score(y_test,
-                           np.round(np.random.random(y_test.shape[0])))))
-    print("when picking randomly - error is: " +
-          str(1 - f1_score(y_test, np.ones(y_test.shape[0]))))
+          str(f1_score(y_test,
+                           np.round(np.random.random(y_test.shape[0])), average="macro")))
+    print("when picking all 0 - error is: " +
+          str(f1_score(y_test, np.ones(y_test.shape[0]), average="macro")))
 
-    # classifier = KNeighborsClassifier
-    # display_errors(X_test, X_train, X_val, classifier, list(range(1, 10)), y_test,
-    #                y_train, y_val, "k-nn")
-    #
-    # classifier = RandomForestClassifier
-    # display_errors(X_test, X_train, X_val, classifier, list(range(5, 25)), y_test,
-    #                y_train, y_val, "Random Forest")
+    classifier = KNeighborsClassifier
+    display_errors(X_test, X_train, X_val, classifier, list(range(1, 20)), y_test,
+                   y_train, y_val, "k-nn")
+
+    classifier = RandomForestClassifier
+    display_errors(X_test, X_train, X_val, classifier, list(range(1, 25)), y_test,
+                   y_train, y_val, "Random Forest")
 
     classify_cancellation_prediction(X_train, y_train, X_test, y_test)
 
@@ -70,13 +71,13 @@ def display_errors(X_test, X_train, X_val, classifier, k_range, y_test,
     train_errors, val_errors, test_errors = [], [], []
     for k in k_range:
         model = classifier(k).fit(X_train, y_train)
-        train_errors.append(1 - f1_score(y_train, model.predict(X_train)))
-        val_errors.append(1 - f1_score(y_val, model.predict(X_val)))
-        test_errors.append(1 - f1_score(y_test, model.predict(X_test)))
+        train_errors.append(f1_score(y_train, model.predict(X_train), average="macro"))
+        val_errors.append(f1_score(y_val, model.predict(X_val), average="macro"))
+        test_errors.append(f1_score(y_test, model.predict(X_test), average="macro"))
     val_errors = np.array(val_errors)
-    min_ind = np.argmin(val_errors)
-    selected_k = np.array(k_range)[min_ind]
-    selected_error = val_errors[min_ind]
+    max_ind = np.argmax(val_errors)
+    selected_k = np.array(k_range)[max_ind]
+    selected_error = val_errors[max_ind]
     mean, std = val_errors, np.std(val_errors, axis=0)
     go.Figure([
         go.Scatter(name='Train Error', x=k_range, y=train_errors,
@@ -117,12 +118,12 @@ def classify_cancellation_prediction(X_train, y_train, X_test, y_test):
     for i in range(len(models)):
         models[i].fit(X_train, y_train)
         pred = models[i].predict(X_test)
-        model_f1_train_error = 1 - f1_score(y_test, pred)
+        model_f1_train_error = f1_score(y_test, pred, average="macro")
         errors.append(model_f1_train_error)
         print(
             f"Model: {model_names[i]}:\n\tTrain Error: {model_f1_train_error}\n")
 
-    errors.append("this is what changed")
+    errors.append("now changed to binary!")
     d = {}
     for i in range(len(errors)):
         d[model_names[i]] = [errors[i]]
@@ -131,7 +132,7 @@ def classify_cancellation_prediction(X_train, y_train, X_test, y_test):
     df = pd.concat([df, temp_df])
     joblib.dump(df, 'errors_df.sav')
 
-    print(df)
+    print(df.to_string())
 
 
 """
