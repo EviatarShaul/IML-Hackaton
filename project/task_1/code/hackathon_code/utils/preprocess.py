@@ -103,6 +103,8 @@ def create_additional_cols(df: pd.DataFrame) -> pd.DataFrame:
     :param df: dataframe to be processed
     :return: the dataframe with additional columns
     """
+    #added for merging
+
     # Convert the columns to datetime objects
     df['booking_datetime'] = pd.to_datetime(df['booking_datetime'])
     df['checkin_date'] = pd.to_datetime(df['checkin_date'])
