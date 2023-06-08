@@ -7,16 +7,15 @@ from sklearn.model_selection import train_test_split
 from argparse import ArgumentParser
 import pandas as pd
 from sklearn.model_selection import train_test_split
+
+from project.task_1.code.hackathon_code.learners import task_2
 from project.task_1.code.hackathon_code.utils import csv_helper
 
 import project.task_1.code.hackathon_code.utils.csv_helper
 import project.task_1.code.hackathon_code.utils.preprocess as preprocess
-from project.task_1.code.hackathon_code.learners.task_1 import \
-    temp_classify_cancellation_prediction
-from project.task_1.code.hackathon_code.learners.task_3 import \
-    churn_prediction_model
-from project.task_1.code.hackathon_code.learners.task_1 import \
-    temp_classify_cancellation_prediction
+from project.task_1.code.hackathon_code.learners.task_1 import temp_classify_cancellation_prediction
+from project.task_1.code.hackathon_code.learners.task_3 import churn_prediction_model
+from project.task_1.code.hackathon_code.learners.task_1 import temp_classify_cancellation_prediction
 from task_1.code.hackathon_code.learners.task_2 import \
     explore_predict_selling_amount
 
@@ -65,11 +64,11 @@ def main(input_file):
     #     task_1.code.hackathon_code.learners.task_1.task_1_routine(data)
     # except Exception as e:
     #     pass
-    # # Task 2
-    # try:
-    #     task_1.code.hackathon_code.learners.task_2.task_2_routine(data)
-    # except Exception as e:
-    #     pass
+    # Task 2
+    try:
+        task_2.task_2_routine(data)
+    except Exception as e:
+        pass
     # # Task 3
     # try:
     #     task_1.code.hackathon_code.learners.task_3.task_3_routine(data)
