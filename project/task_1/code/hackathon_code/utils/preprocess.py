@@ -12,7 +12,7 @@ COLS_TO_DROP = ['booking_datetime', 'checkin_date', 'checkout_date', 'hotel_live
 
 
 def create_x_y_df(df: pd.DataFrame, x_columns: List[str], label_column: str = None) -> Tuple[
-        pd.DataFrame, Optional[pd.Series]]:
+    pd.DataFrame, Optional[pd.Series]]:
     """
     :param df: Raw data split to
     :param label_column: the y feature
@@ -81,7 +81,7 @@ def read_csv_to_dataframe(path: str) -> pd.DataFrame:
     return pd.read_csv(path)
 
 
-def create_additional_cols(df: pd.DataFrame) -> tuple[DataFrame, dict[str, Any]]:
+def create_additional_cols(df: pd.DataFrame) -> Tuple[DataFrame, Dict[str, Any]]:
     """
     :param df: dataframe to add columns to
     :return: the dataframe with additional columns
@@ -97,7 +97,7 @@ def create_additional_cols(df: pd.DataFrame) -> tuple[DataFrame, dict[str, Any]]
     df['time_from_booking_to_checkin'] = (df['checkin_date'] - df['booking_datetime']) / pd.Timedelta(hours=1)
     default_values['time_from_booking_to_checkin'] = df['time_from_booking_to_checkin'].mean()
 
-    df['stay_duration'] = (df['checkout_date'] - df['checkin_date']) / pd.Timedelta(hours=1)
+    df['stay_duration'] = (df['checkout_date'] - df['checkin_date']) / pd.Timedelta(hours=24)
     default_values['stay_duration'] = df['stay_duration'].mean()
 
     # Create a new column for whether the booking is on a weekday
@@ -106,6 +106,22 @@ def create_additional_cols(df: pd.DataFrame) -> tuple[DataFrame, dict[str, Any]]
 
     # Create a new column for the month of the checkin date
     df['checkin_month'] = df['checkin_date'].dt.month
+
+    # fill missing values
+    df['cancellation_policy_code'] = df['cancellation_policy_code'].fillna("UNKNOWN")
+
+    if "cancellation_datetime" in df.columns:
+        df['cancellation_datetime'] = pd.to_datetime(df['cancellation_datetime'])
+        df['time_from_cancellation_to_checkin'] = (df['checkin_date'] - df[
+            'cancellation_datetime']) / pd.Timedelta(hours=24)
+        default_values['time_from_cancellation_to_checkin'] = df['time_from_cancellation_to_checkin'].mean()
+
+        # Create a binary column for whether the booking was cancelled
+        df['cancelled'] = np.where(pd.Series(df.cancellation_datetime).isnull(), 0, 1)
+
+        # create a column for the time between the checkin date and the cancellation date
+        df['time_from_cancellation_to_checkin'] = np.where(df['cancelled'] == 1, (
+                df['checkin_date'] - df['cancellation_datetime']) / pd.Timedelta(hours=24), 0)
 
     # Make the month cyclic with sin and cos
     df['checkin_month_sin'] = np.sin((df['checkin_month'] - 1) * (2. * np.pi / 12))
