@@ -15,9 +15,10 @@ import pandas as pd
 import numpy as np
 from project.task_1.code.hackathon_code.utils.csv_helper import *
 from project.task_1.code.hackathon_code.utils.preprocess import *
+from project.task_1.code.hackathon_code.utils.model_helper import *
 
-MODEL_SAVE_PATH = ""  # todo add model path
-MODEL_LOAD_PATH = ""  # todo add model path
+MODEL_SAVE_PATH = "task_1/code/hackathon_code/task_1_model_weights.sav"
+MODEL_LOAD_PATH = "task_1/code/hackathon_code/task_1_model_weights.sav"
 import plotly.graph_objects as go
 
 LABEL_NAME = "cancellation_datetime"
@@ -166,7 +167,7 @@ def task_1_routine(data: pd.DataFrame) -> NoReturn:
     :param data: Test data to predict
     :return: None
     """
-    model = project.task_1.code.hackathon_code.utils.model_helper.load_model(MODEL_LOAD_PATH)
+    model = load_model(MODEL_LOAD_PATH)
     # Todo: add internal preprocess
     ids = data["h_booking_id"]
     data.drop(["h_booking_id"])
