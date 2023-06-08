@@ -140,6 +140,9 @@ def create_additional_cols(df: pd.DataFrame) -> pd.DataFrame:
     df['special_requests'] = 0
     for request in special_requests:
         df['special_requests'] += df[request]
+
+    # TODO: remove??
+    df["special_requests"].replace(np.nan, 0, inplace=True)
     return df
 
 
@@ -150,9 +153,11 @@ def generic_preprocess(df: pd.DataFrame) -> Tuple[pd.DataFrame, Dict]:
     :return: a tuple of the processed dataframe and the dictionary of the columns and their default values
     """
     df = create_additional_cols(df)
-    df["cost"] = df.apply(lambda row: convert_currency_to_usd(row["original_selling_amount"],
-                                                              row["original_payment_currency"],
-                                                              pd.to_datetime(row["booking_datetime"])), axis=1)
+    # df["cost"] = df.apply(lambda row: convert_currency_to_usd(row["original_selling_amount"],
+    #                                                           row["original_payment_currency"],
+    #                                                           pd.to_datetime(row["booking_datetime"])), axis=1)
+    # df = df[df['original_payment_currency'] == "USD"]
+    df["cost"] = df["original_selling_amount"]
     df = df.drop(columns=['original_selling_amount', 'original_payment_currency'])
 
     return df, {}
