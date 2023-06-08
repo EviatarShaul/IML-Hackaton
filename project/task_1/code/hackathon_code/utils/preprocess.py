@@ -28,30 +28,6 @@ def create_x_y_df(df: pd.DataFrame, x_columns: List[str], label_column: str = No
     return df[x_columns], df[label_column] if label_column is not None else df[x_columns]
 
 
-def convert_currency_to_usd(amount: float, curr: str, date: datetime.date):
-    """
-    Converts a given currency to USD based on its value at a given date.
-
-    Parameters:
-    - amount (float): The amount of currency to be converted.
-    - curr (str): The currency code of the currency to be converted.
-    - date (datetime.date): The trade date for which the currency conversion should be performed.
-
-    Returns:
-    - float: The converted amount in USD.
-
-    Note:
-    - This function relies on an external currency converter library named `currency_converter`.
-    - The `currency_converter` library should be installed and imported before using this function as requested
-        the requirements file.
-    """
-    if curr in currency_converter.currencies:
-        return currency_converter.convert(amount=amount, currency=curr, new_currency='USD', date=date)
-    else:
-        return np.mean([currency_converter.convert(amount=amount, currency=c, new_currency='USD', date=date) for c in
-                        currency_converter.currencies], axis=0)
-
-
 def divide_csv_file(path, divisions, randomize):
     # Get the directory and filename from the input path
     directory = os.path.dirname(path)
