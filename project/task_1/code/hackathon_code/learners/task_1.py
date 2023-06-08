@@ -90,7 +90,16 @@ DATAFRAME_IMPORTANT_COLS = ["guest_is_not_the_customer",
                             "no_of_adults",
                             "no_of_children",
                             "no_of_extra_bed",
-                            "no_of_room"]
+                            "no_of_room",
+                            "cost",
+                            "time_from_booking_to_checkin",
+                            "stay_duration",
+                            "is_weekday",
+                            "checkin_month_sin",
+                            "checkin_month_cos",
+                            "hotel_age",
+                            "special_requests",
+                            ]
 
 
 def temp_classify_cancellation_prediction(raw_data: pd.DataFrame):
