@@ -27,7 +27,7 @@ DATAFRAME_IMPORTANT_COLS = ["guest_is_not_the_customer",
                             "no_of_children",
                             "no_of_extra_bed",
                             "no_of_room",
-                            "original_selling_amount",
+                            # "original_selling_amount",
                             "time_from_booking_to_checkin",
                             "stay_duration",
                             "is_weekday",
@@ -45,6 +45,7 @@ def temp_classify_cancellation_prediction(raw_data: pd.DataFrame, validate: pd.D
         for prefix in CATEGORICAL_COLS:
             if col.startswith(prefix):
                 DATAFRAME_IMPORTANT_COLS.append(col)
+    pd.DataFrame(DATAFRAME_IMPORTANT_COLS).to_csv("titles.csv")
 
     X_train, y_train = create_x_y_df(raw_data, DATAFRAME_IMPORTANT_COLS,
                                      LABEL_NAME)
@@ -140,18 +141,18 @@ def classify_cancellation_prediction(X_train, y_train, X_test, y_test):
         errors.append(model_f1_train_error)
         print(
             f"Model: {model_names[i]}:\n\tTrain Error: {model_f1_train_error}\n")
-    # 21
-    errors.append("added dummies")
-    d = {}
-    for i in range(len(errors)):
-        d[model_names[i]] = [errors[i]]
-    temp_df = pd.DataFrame(d)
-    # in order to save log between every run to exploration
-    df: pd.DataFrame = joblib.load('errors_df.sav')
-    df = pd.concat([df, temp_df])
-    joblib.dump(df, 'errors_df.sav')
 
-    print(df.to_string())
+    # errors.append("added dummies")
+    # d = {}
+    # for i in range(len(errors)):
+    #     d[model_names[i]] = [errors[i]]
+    # temp_df = pd.DataFrame(d)
+    # # in order to save log between every run to exploration
+    # df: pd.DataFrame = joblib.load('errors_df.sav')
+    # df = pd.concat([df, temp_df])
+    # joblib.dump(df, 'errors_df.sav')
+    #
+    # print(df.to_string())
 
 
 def task_1_routine(data: pd.DataFrame) -> NoReturn:
@@ -162,7 +163,17 @@ def task_1_routine(data: pd.DataFrame) -> NoReturn:
     """
     model = load_model(MODEL_LOAD_PATH)
     ids = data["h_booking_id"]
-    data.drop(columns = ["h_booking_id"])
+    for col in data.columns:
+        for prefix in CATEGORICAL_COLS:
+            if col.startswith(prefix):
+                DATAFRAME_IMPORTANT_COLS.append(col)
+
+    titles = pd.read_csv("titles.csv")["0"]
+    for title in titles:
+        if title not in DATAFRAME_IMPORTANT_COLS:
+            DATAFRAME_IMPORTANT_COLS.append(title)
+    data = data.reindex(columns=DATAFRAME_IMPORTANT_COLS, fill_value=0)
+    data = create_x_y_df(data, DATAFRAME_IMPORTANT_COLS)[0]
     pred = model.predict(data)
-    helper_write_csv(ids, pred, "task_1/prediction/agoda_cancellation_prediction.csv", "cancellation")
+    helper_write_csv(ids, pred, "agoda_cancellation_prediction.csv", "cancellation")
 
