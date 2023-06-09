@@ -1,21 +1,12 @@
 # Task 1.2.2
 import plotly.graph_objects as go
-from typing import NoReturn
-import sklearn.linear_model
+from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 from sklearn.ensemble import RandomForestClassifier, AdaBoostRegressor
-from sklearn.ensemble import AdaBoostClassifier
 from sklearn.metrics import mean_squared_error
-from sklearn.model_selection import train_test_split
-from sklearn.svm import SVC
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.tree import DecisionTreeClassifier
-from sklearn.discriminant_analysis import LinearDiscriminantAnalysis, \
-    QuadraticDiscriminantAnalysis
-import pandas as pd
-import numpy as np
 
-import project.task_1.code.hackathon_code.utils.model_helper
 from project.task_1.code.hackathon_code.utils.csv_helper import *
 from project.task_1.code.hackathon_code.utils.preprocess import *
 from project.task_1.code.hackathon_code.utils.model_helper import *
@@ -52,7 +43,6 @@ DATAFRAME_IMPORTANT_COLS = ["guest_is_not_the_customer",
                             "checkin_month_cos",
                             "hotel_age",
                             "hotel_star_rating",
-                            # "cancellation_datetime",  # TODO: uncomment!
                             "special_requests"]
 
 CATEGORICAL_COLS = ["charge_option_", "accommadation_type_name", "original_payment_type_"]
@@ -60,23 +50,6 @@ CATEGORICAL_COLS = ["charge_option_", "accommadation_type_name", "original_payme
 DAYS_IDX = 0
 REL_COST_IDX = 1
 POLICY_COL = "cancellation_policy_code"
-
-
-def cancellation_fit(raw_data: pd.DataFrame, temp) -> RandomForestClassifier:
-    for col in raw_data.columns:
-        for prefix in CATEGORICAL_COLS:
-            if col.startswith(prefix):
-                TASK_1_DATAFRAME_IMPORTANT_COLS.append(col)
-
-    X_train, y_train = create_x_y_df(raw_data, TASK_1_DATAFRAME_IMPORTANT_COLS,
-                                     TASK_1_LABEL_NAME)
-
-    # changing y_train: where 1 indicating that a cancellation is predicted, and 0 otherwise
-    y_train = np.where(pd.Series(y_train).isnull(), 0, 1)
-
-    model = RandomForestClassifier(11)
-    model.fit(X_train, y_train)
-    return model
 
 
 def explore_predict_selling_amount(raw_data: pd.DataFrame, validate: pd.DataFrame, test: pd.DataFrame):
@@ -90,7 +63,7 @@ def explore_predict_selling_amount(raw_data: pd.DataFrame, validate: pd.DataFram
 
     # Internal preprocess:
     data = pd.concat([raw_data, validate, test])
-    data = preprocess_task_2(data)[0]
+    data = internal_preprocess(data)[0]
     y_label = np.max([data["no_show_cost"].values, data["cancellation_fee"].values], axis=0)
     y_label[y_label == 0] = -1
 
@@ -106,59 +79,30 @@ def explore_predict_selling_amount(raw_data: pd.DataFrame, validate: pd.DataFram
     X_val = create_x_y_df(validate, DATAFRAME_IMPORTANT_COLS)[0]
     X_test = create_x_y_df(test, DATAFRAME_IMPORTANT_COLS)[0]
 
-
-    # cancel_model: RandomForestClassifier = cancellation_fit(raw_data, X_test)
-    # cancel_pred = cancel_model.predict(X_test.drop(columns=[LABEL_NAME]))
-
-    # TODO: this part should be done in the INTERNAL pre-processing part!
-    # changing y_train: where 1 indicating that a cancellation is predicted, and 0 otherwise
-    # y_train = np.where(pd.Series(y_train).isnull(), 0, 1)
-    # y_val = np.where(pd.Series(y_val).isnull(), 0, 1)
-    # y_test = np.where(pd.Series(y_test).isnull(), 0, 1)
-
-    # TODO: f1_score of picking randomly and of choosing all 0
-
     print("when picking randomly - error is: " +
           str(mean_squared_error(y_test,
                                  np.round(np.random.random(y_test.shape[0]) * y_train.max()), squared=False)))
-    print("when picking all 0 - error is: " +
+    print("when picking all mean - error is: " +
           str(mean_squared_error(y_test, np.ones(y_test.shape[0]) * y_train.mean(), squared=False)))
-
-    model = AdaBoostRegressor()
+    # now we can fit the model
+    # After running 10-20 iterations, we saw that for n = 14 we
+    # get a good tradeoff for var-bias
+    model = AdaBoostRegressor(n_estimators=14)
     model.fit(X_train, y_train)
     pred = model.predict(X_test)
     print(mean_squared_error(y_test, pred, squared=False))
-
-    # classifier = lambda x: AdaBoostRegressor(n_estimators=x)
-    # display_errors(X_test, X_train, X_val, classifier, list(range(5, 200, 3)), y_test,
-    #                y_train, y_val, r"Random Forest Classifier - "
-    #                                r"Number of classifiers as a function of f1 score "
-    #                                r"on train\validation\test data")
-
-    # TODO: older classifiers (lesser than randomForest):
-    # classifier = KNeighborsClassifier
-    # display_errors(X_test, X_train, X_val, classifier, list(range(1, 20)), y_test,
-    #                y_train, y_val, "k-nn")
-    # classifier = lambda x: DecisionTreeClassifier(max_depth=x)
-    # display_errors(X_test, X_train, X_val, classifier, list(range(1, 25)), y_test,
-    #                y_train, y_val, "Decision Tree")
-
-    # TODO: older version that uses simpler classifiers:
-    # classify_cancellation_prediction(X_train, y_train, X_test, y_test)
     result = np.where(cancel_real == 1, -1, pred)
-    # result = np.where(cancel_pred == 1, -1, pred)
     print(mean_squared_error(y_test, result, squared=False))
-    return result
+    save_model(model, MODEL_SAVE_PATH)
 
 
-def display_errors(X_test, X_train, X_val, classifier, k_range, y_test,
-                   y_train, y_val, name):
+def display_errors(X_test, X_train, classifier, k_range, y_test,
+                   y_train, name):
     # Calculating error for each k in k_range on train, validate and test sets
     train_errors, val_errors, test_errors = [], [], []
     for k in k_range:
         model = classifier(k).fit(X_train, y_train)
         train_errors.append(mean_squared_error(y_train, model.predict(X_train), squared=False))
-        val_errors.append(mean_squared_error(y_val, model.predict(X_val), squared=False))
         test_errors.append(mean_squared_error(y_test, model.predict(X_test), squared=False))
 
     # finding the argument of the maximal value
@@ -167,7 +111,7 @@ def display_errors(X_test, X_train, X_val, classifier, k_range, y_test,
     selected_k = np.array(k_range)[max_ind]
     selected_error = val_errors[max_ind]
 
-    # displaying the graph of the f1 score on the train\validate\test sets
+    # displaying the graph of the Loss on the train\validate\test sets
     go.Figure([
         go.Scatter(name='Train Score', x=k_range, y=train_errors,
                    mode='markers+lines', marker_color='rgb(152,171,150)'),
@@ -183,11 +127,7 @@ def display_errors(X_test, X_train, X_val, classifier, k_range, y_test,
         xaxis_title=r"$\text{Number of base estimators}$",
         yaxis_title=r"$\text{f1 macro score}$").show()
 
-    # After running 10-20 iterations, we saw that for k= ~11-13 we
-    # maximize the f1 macro score:
-    # TODO: Save classifier weights:
-    # model = classifier(11).fit(X_train, y_train)
-    # save_model(model, MODEL_SAVE_PATH)
+
 
 
 def classify_cancellation_prediction(X_train, y_train, X_test, y_test):
@@ -280,7 +220,7 @@ def calculate_cancellation_fees(row: pd.Series) -> pd.Series:
         return pd.Series(ret_val)
 
 
-def preprocess_task_2(data: pd.DataFrame) -> Tuple[pd.DataFrame, Dict]:
+def internal_preprocess(data: pd.DataFrame) -> Tuple[pd.DataFrame, Dict]:
     # data = data.join(data.apply(calculate_cancellation_fees, axis=1))
     data = pd.concat([data, data.apply(calculate_cancellation_fees, axis=1)], axis=1)
     # todo add default values
@@ -295,9 +235,7 @@ def task_2_routine(data: pd.DataFrame):
     model = load_model(MODEL_LOAD_PATH)
     ids = data["h_booking_id"]
     data.drop(["h_booking_id"])
-    # TODO: Can not expect to get the column "original_selling_amount" in data!
-    data = preprocess_task_2(data)
-    # data = internal_preprocess(data)
+    data = internal_preprocess(data)
     pred = model.predict(data)
 
     helper_write_csv(data["h_booking_id"], pred, "agoda_cost_of_cancellation.csv", "predicted_selling_amount")
