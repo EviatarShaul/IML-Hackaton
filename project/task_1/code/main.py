@@ -45,10 +45,10 @@ def explore():
     # temp_classify_cancellation_prediction(data, validate, test)
 
     # Q2:
-    explore_predict_selling_amount(data, validate, test)
+    # explore_predict_selling_amount(data, validate, test)
 
     # Q3:
-    # churn_prediction_model(data)
+    churn_prediction_model(pd.concat([data, test]))
 
     # Q4:
 

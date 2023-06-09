@@ -2,7 +2,8 @@
 import plotly.graph_objects as go
 from typing import NoReturn
 import sklearn.linear_model
-from sklearn.ensemble import RandomForestClassifier, AdaBoostRegressor
+from sklearn.ensemble import RandomForestClassifier, AdaBoostRegressor, \
+    RandomForestRegressor
 from sklearn.ensemble import AdaBoostClassifier
 from sklearn.metrics import mean_squared_error
 from sklearn.model_selection import train_test_split
@@ -129,11 +130,11 @@ def explore_predict_selling_amount(raw_data: pd.DataFrame, validate: pd.DataFram
     pred = model.predict(X_test)
     print(mean_squared_error(y_test, pred, squared=False))
 
-    # classifier = lambda x: AdaBoostRegressor(n_estimators=x)
-    # display_errors(X_test, X_train, X_val, classifier, list(range(5, 200, 3)), y_test,
-    #                y_train, y_val, r"Random Forest Classifier - "
-    #                                r"Number of classifiers as a function of f1 score "
-    #                                r"on train\validation\test data")
+    classifier = lambda x: RandomForestRegressor(x)
+    display_errors(X_test, X_train, X_val, classifier, list(range(2, 25, 1)), y_test,
+                   y_train, y_val, r"Random Forest Classifier - "
+                                   r"Number of classifiers as a function of f1 score "
+                                   r"on train\validation\test data")
 
     # TODO: older classifiers (lesser than randomForest):
     # classifier = KNeighborsClassifier
