@@ -45,10 +45,10 @@ def person_corr(X: pd.DataFrame, y: np.ndarray) -> list:
 
 
 def churn_prediction_model(raw_data: pd.DataFrame):
-    # for col in raw_data.columns:
-    #     for prefix in CATEGORICAL_COLS:
-    #         if col.startswith(prefix):
-    #             DATAFRAME_IMPORTANT_COLS.append(col)
+    for col in raw_data.columns:
+        for prefix in CATEGORICAL_COLS:
+            if col.startswith(prefix):
+                DATAFRAME_IMPORTANT_COLS.append(col)
 
     # Splitting to X and y
     X, y = create_x_y_df(raw_data, DATAFRAME_IMPORTANT_COLS, LABEL_NAME)

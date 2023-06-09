@@ -1,4 +1,5 @@
 # Task 1.2.2
+import pandas as pd
 import plotly.graph_objects as go
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 from sklearn.ensemble import RandomForestClassifier, AdaBoostRegressor
@@ -18,6 +19,7 @@ from project.task_1.code.hackathon_code.utils.model_helper import *
 import joblib
 
 MODEL_SAVE_PATH = "task_2_model_weights.sav"
+MODEL_LOAD_PATH = "task_2_model_weights.sav"
 
 TASK_1_LABEL_NAME = "cancellation_datetime"
 TASK_1_DATAFRAME_IMPORTANT_COLS = ["guest_is_not_the_customer",
@@ -215,16 +217,16 @@ def classify_cancellation_prediction(X_train, y_train, X_test, y_test):
         print(
             f"Model: {model_names[i]}:\n\tTrain Error: {model_train_error}\n")
 
-    errors.append("added dummies")
-    d = {}
-    for i in range(len(errors)):
-        d[model_names[i]] = [errors[i]]
-    temp_df = pd.DataFrame(d)
-    df: pd.DataFrame = joblib.load('errors_df.sav')
-    df = pd.concat([df, temp_df])
-    joblib.dump(df, 'errors_df.sav')
-
-    print(df.to_string())
+    # errors.append("added dummies")
+    # d = {}
+    # for i in range(len(errors)):
+    #     d[model_names[i]] = [errors[i]]
+    # temp_df = pd.DataFrame(d)
+    # df: pd.DataFrame = joblib.load('errors_df.sav')
+    # df = pd.concat([df, temp_df])
+    # joblib.dump(df, 'errors_df.sav')
+    #
+    # print(df.to_string())
 
 
 def parse_policies(policies: List[str], row: pd.Series) -> List:
@@ -285,10 +287,31 @@ def task_2_routine(data: pd.DataFrame):
     :param data:
     :return:
     """
-    model = load_model(MODEL_LOAD_PATH)
-    ids = data["h_booking_id"]
-    data.drop(["h_booking_id"])
-    data = internal_preprocess(data)
-    pred = model.predict(data)
 
-    helper_write_csv(data["h_booking_id"], pred, "agoda_cost_of_cancellation.csv", "predicted_selling_amount")
+    ids = data["h_booking_id"]
+    for col in data.columns:
+        for prefix in CATEGORICAL_COLS:
+            if col.startswith(prefix):
+                DATAFRAME_IMPORTANT_COLS.append(col)
+
+    titles = pd.read_csv("titles.csv")["0"]
+    for title in titles:
+        if title not in DATAFRAME_IMPORTANT_COLS:
+            DATAFRAME_IMPORTANT_COLS.append(title)
+    data_new = data.reindex(columns=DATAFRAME_IMPORTANT_COLS, fill_value=0)
+
+    data_new = create_x_y_df(data_new, DATAFRAME_IMPORTANT_COLS)[0]
+    task_1_model = load_model("task_1_model_weights.sav")
+    data['cancelled'] = task_1_model.predict(data_new)
+    data['time_from_cancellation_to_checkin'] = task_1_model.predict(data_new)
+    data['original_selling_amount'] = task_1_model.predict(data_new)
+    data = internal_preprocess(data)[0]
+
+
+    data = data.reindex(columns=DATAFRAME_IMPORTANT_COLS, fill_value=0)
+    data = create_x_y_df(data, DATAFRAME_IMPORTANT_COLS)[0]
+
+    model = load_model(MODEL_LOAD_PATH)
+    pred: np.ndarray = model.predict(data)
+    pred2 = np.where(pred < np.median(pred), -1, pred * 5.5)
+    helper_write_csv(ids, pd.Series(pred2), "agoda_cost_of_cancellation.csv", "predicted_selling_amount")

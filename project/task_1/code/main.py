@@ -18,16 +18,10 @@ from project.task_1.code.hackathon_code.learners.task_3 import churn_prediction_
 from project.task_1.code.hackathon_code.learners.task_1 import temp_classify_cancellation_prediction
 from task_1.code.hackathon_code.learners.task_2 import explore_predict_selling_amount
 
-SEED = 420420  # todo delete
 
-DATA_25_PATH = r'../../../instructions/divisions/agoda_train_0_from_4.csv'
-DATA_50_PATH = r'../../../instructions/divisions/agoda_train_1_from_4.csv'
-DATA_75_PATH = r'../../../instructions/divisions/agoda_train_2_from_4.csv'
-DATA_100_PATH = r'../../../instructions/divisions/agoda_train_3_from_4.csv'
-DATA_ORIG_PATH = r'../../../instructions/agoda_cancellation_train.csv'
 
 # def explore():
-#     data1 = csv_helper.read_csv_to_dataframe(DATA_25_PATH)
+#     data1 = csv_helper.read_csv_to_dataframe(DATA_ORIG_PATH)
 #     data2 = csv_helper.read_csv_to_dataframe(DATA_50_PATH)
 #     # data3 = csv_helper.read_csv_to_dataframe(DATA_75_PATH)
 #     data = pd.concat([data1, data2])
@@ -38,35 +32,35 @@ DATA_ORIG_PATH = r'../../../instructions/agoda_cancellation_train.csv'
 #     temp, test = train_test_split(data2, test_size=0.3)
 #     data2, validate = train_test_split(temp, test_size=0.5)
 #     data = pd.concat([data1, data2])
-
-# Q1:
-# temp_classify_cancellation_prediction(data, validate, test)
-
-# Q2:
-# explore_predict_selling_amount(data, validate, test)
-
-# Q3:
-# churn_prediction_model(data)
-
-# Q4:
+#
+#     # Q1:
+#     temp_classify_cancellation_prediction(data, validate, test)
+#
+#     # Q2:
+#     explore_predict_selling_amount(data, validate, test)
+#
+#     # Q3:
+#     churn_prediction_model(data)
+#
+#     # Q4:
 
 
 if __name__ == "__main__":
+    SEED = 420420
     np.random.seed(SEED)
-    # explore()
-    # exit(0)
-    if len(sys.argv) <= 2:
+    if len(sys.argv) <= 3:
         exit("No input file!")
-    # input_file = sys.argv[1]
     input_file_1 = read_csv_to_dataframe(sys.argv[1])
     input_file_2 = read_csv_to_dataframe(sys.argv[2])
+    input_file_3 = read_csv_to_dataframe(sys.argv[3])
 
 
     # exploration part
     # data = project.task_1.code.hackathon_code.utils.csv_helper.read_csv_to_dataframe(input_file)
     # temp_classify_cancellation_prediction(data)
-    input_file_1, default_values = preprocess.generic_preprocess(input_file_1)
-    input_file_2, default_values = preprocess.generic_preprocess(input_file_2)
+    input_file_1 = preprocess.generic_preprocess(input_file_1)[0]
+    input_file_2 = preprocess.generic_preprocess(input_file_2)[0]
+    input_file_3 = preprocess.generic_preprocess(input_file_3)[0]
 
     # Task 1
     try:
@@ -74,17 +68,19 @@ if __name__ == "__main__":
     except Exception as e:
         print(e)
     # Task 2
+    task_2.task_2_routine(input_file_2)
     try:
-        task_2.task_2_routine(input_file_2)
+        pass
     except Exception as e:
         pass
     # Task 3
     try:
-        task_3_routine(data)
+        churn_prediction_model(input_file_3)
     except Exception as e:
         pass
     # Task 4
     try:
-        task_4_routine(data)
+        # in future
+        pass
     except Exception as e:
         pass

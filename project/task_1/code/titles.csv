@@ -1,0 +1,42 @@
+,0
+0,guest_is_not_the_customer
+1,no_of_adults
+2,no_of_children
+3,no_of_extra_bed
+4,no_of_room
+5,time_from_booking_to_checkin
+6,stay_duration
+7,is_weekday
+8,checkin_month_sin
+9,checkin_month_cos
+10,hotel_age
+11,hotel_star_rating
+12,special_requests
+13,accommadation_type_name_Apartment
+14,accommadation_type_name_Boat / Cruise
+15,accommadation_type_name_Bungalow
+16,accommadation_type_name_Capsule Hotel
+17,accommadation_type_name_Chalet
+18,accommadation_type_name_Guest House / Bed & Breakfast
+19,accommadation_type_name_Holiday Park / Caravan Park
+20,accommadation_type_name_Home
+21,accommadation_type_name_Homestay
+22,accommadation_type_name_Hostel
+23,accommadation_type_name_Hotel
+24,accommadation_type_name_Inn
+25,accommadation_type_name_Lodge
+26,accommadation_type_name_Love Hotel
+27,accommadation_type_name_Motel
+28,accommadation_type_name_Private Villa
+29,accommadation_type_name_Resort
+30,accommadation_type_name_Resort Villa
+31,accommadation_type_name_Ryokan
+32,accommadation_type_name_Serviced Apartment
+33,accommadation_type_name_Tent
+34,accommadation_type_name_UNKNOWN
+35,charge_option_Pay Later
+36,charge_option_Pay Now
+37,charge_option_Pay at Check-in
+38,original_payment_type_Credit Card
+39,original_payment_type_Gift Card
+40,original_payment_type_Invoice
