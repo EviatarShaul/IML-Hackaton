@@ -128,8 +128,6 @@ def display_errors(X_test, X_train, classifier, k_range, y_test,
         yaxis_title=r"$\text{f1 macro score}$").show()
 
 
-
-
 def classify_cancellation_prediction(X_train, y_train, X_test, y_test):
     # defining models to predict:
     models = [
@@ -190,7 +188,6 @@ def calculate_cancellation_fees(row: pd.Series) -> pd.Series:
     ret_val = {"no_show_cost": 0, "cancellation_fee": 0}
     if row['cancelled'] == 0:
         return pd.Series(ret_val)
-
     policies = row[POLICY_COL].split("_")
     if policies[-1] == "UNKNOWN":
         return pd.Series(ret_val)
@@ -223,7 +220,6 @@ def calculate_cancellation_fees(row: pd.Series) -> pd.Series:
 def internal_preprocess(data: pd.DataFrame) -> Tuple[pd.DataFrame, Dict]:
     # data = data.join(data.apply(calculate_cancellation_fees, axis=1))
     data = pd.concat([data, data.apply(calculate_cancellation_fees, axis=1)], axis=1)
-    # todo add default values
     return data, {}
 
 
