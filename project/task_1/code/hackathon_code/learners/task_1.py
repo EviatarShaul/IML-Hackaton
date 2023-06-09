@@ -155,6 +155,7 @@ def classify_cancellation_prediction(X_train, y_train, X_test, y_test):
     for i in range(len(errors)):
         d[model_names[i]] = [errors[i]]
     temp_df = pd.DataFrame(d)
+    # in order to save log between every run to exploration
     df: pd.DataFrame = joblib.load('errors_df.sav')
     df = pd.concat([df, temp_df])
     joblib.dump(df, 'errors_df.sav')
@@ -169,8 +170,6 @@ def task_1_routine(data: pd.DataFrame) -> NoReturn:
     :return: None
     """
     model = load_model(MODEL_LOAD_PATH)
-
-    # Todo: add internal preprocess
     ids = data["h_booking_id"]
     data.drop(["h_booking_id"])
     pred = model.predict(data)
