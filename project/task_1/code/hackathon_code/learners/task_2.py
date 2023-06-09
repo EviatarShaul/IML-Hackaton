@@ -12,8 +12,7 @@ from project.task_1.code.hackathon_code.utils.preprocess import *
 from project.task_1.code.hackathon_code.utils.model_helper import *
 import joblib
 
-MODEL_SAVE_PATH = "task_1/code/hackathon_code/task_2_model_weights.sav"
-MODEL_LOAD_PATH = "task_1/code/hackathon_code/task_2_model_weights.sav"
+MODEL_SAVE_PATH = "task_2_model_weights.sav"
 
 TASK_1_LABEL_NAME = "cancellation_datetime"
 TASK_1_DATAFRAME_IMPORTANT_COLS = ["guest_is_not_the_customer",
@@ -128,8 +127,6 @@ def display_errors(X_test, X_train, classifier, k_range, y_test,
         yaxis_title=r"$\text{f1 macro score}$").show()
 
 
-
-
 def classify_cancellation_prediction(X_train, y_train, X_test, y_test):
     # defining models to predict:
     models = [
@@ -190,7 +187,6 @@ def calculate_cancellation_fees(row: pd.Series) -> pd.Series:
     ret_val = {"no_show_cost": 0, "cancellation_fee": 0}
     if row['cancelled'] == 0:
         return pd.Series(ret_val)
-
     policies = row[POLICY_COL].split("_")
     if policies[-1] == "UNKNOWN":
         return pd.Series(ret_val)
@@ -223,7 +219,6 @@ def calculate_cancellation_fees(row: pd.Series) -> pd.Series:
 def internal_preprocess(data: pd.DataFrame) -> Tuple[pd.DataFrame, Dict]:
     # data = data.join(data.apply(calculate_cancellation_fees, axis=1))
     data = pd.concat([data, data.apply(calculate_cancellation_fees, axis=1)], axis=1)
-    # todo add default values
     return data, {}
 
 
