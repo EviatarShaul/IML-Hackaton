@@ -12,8 +12,7 @@ from project.task_1.code.hackathon_code.utils.preprocess import *
 from project.task_1.code.hackathon_code.utils.model_helper import *
 import joblib
 
-MODEL_SAVE_PATH = "task_1/code/hackathon_code/task_2_model_weights.sav"
-MODEL_LOAD_PATH = "task_1/code/hackathon_code/task_2_model_weights.sav"
+MODEL_SAVE_PATH = "task_2_model_weights.sav"
 
 TASK_1_LABEL_NAME = "cancellation_datetime"
 TASK_1_DATAFRAME_IMPORTANT_COLS = ["guest_is_not_the_customer",

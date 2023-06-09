@@ -53,13 +53,13 @@ def temp_classify_cancellation_prediction(raw_data: pd.DataFrame, validate: pd.D
     X_test, y_test = create_x_y_df(test, DATAFRAME_IMPORTANT_COLS,
                                    LABEL_NAME)
 
-    # TODO: this part should be done in the pre-processing part!
+
     # changing y_train: where 1 indicating that a cancellation is predicted, and 0 otherwise
     y_train = np.where(pd.Series(y_train).isnull(), 0, 1)
     y_val = np.where(pd.Series(y_val).isnull(), 0, 1)
     y_test = np.where(pd.Series(y_test).isnull(), 0, 1)
 
-    # TODO: f1_score of picking randomly and of choosing all 0
+
     print("when picking randomly - error is: " +
           str(f1_score(y_test,
                        np.round(np.random.random(y_test.shape[0])), average="macro")))
@@ -72,16 +72,7 @@ def temp_classify_cancellation_prediction(raw_data: pd.DataFrame, validate: pd.D
                                    r"Number of classifiers as a function of f1 score "
                                    r"on train\validation\test data")
 
-    # TODO: older classifiers (lesser than randomForest):
-    # classifier = KNeighborsClassifier
-    # display_errors(X_test, X_train, X_val, classifier, list(range(1, 20)), y_test,
-    #                y_train, y_val, "k-nn")
-    # classifier = lambda x: DecisionTreeClassifier(max_depth=x)
-    # display_errors(X_test, X_train, X_val, classifier, list(range(1, 25)), y_test,
-    #                y_train, y_val, "Decision Tree")
 
-    # TODO: older version that uses simpler classifiers:
-    # classify_cancellation_prediction(X_train, y_train, X_test, y_test)
 
 
 def display_errors(X_test, X_train, X_val, classifier, k_range, y_test,
@@ -171,6 +162,7 @@ def task_1_routine(data: pd.DataFrame) -> NoReturn:
     """
     model = load_model(MODEL_LOAD_PATH)
     ids = data["h_booking_id"]
-    data.drop(["h_booking_id"])
+    data.drop(columns = ["h_booking_id"])
     pred = model.predict(data)
-    helper_write_csv(ids, pred, "agoda_cancellation_prediction.csv", "cancellation")
+    helper_write_csv(ids, pred, "task_1/prediction/agoda_cancellation_prediction.csv", "cancellation")
+
