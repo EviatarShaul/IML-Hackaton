@@ -191,4 +191,5 @@ def generic_preprocess(df: pd.DataFrame) -> Tuple[pd.DataFrame, Dict]:
     default_values.update(dummies_default_values)
     df = df.drop(columns=COLS_TO_DROP)
 
+
     return df, default_values
