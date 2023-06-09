@@ -185,7 +185,8 @@ def generic_preprocess(df: pd.DataFrame) -> Tuple[pd.DataFrame, Dict]:
     :return: a tuple of the processed dataframe and the dictionary of the columns and their default values
     """
     df, default_values = create_additional_cols(df)
-    default_values['original_selling_amount'] = df['original_selling_amount'].mean()
+    if "original_selling_amount" in df:
+        default_values['original_selling_amount'] = df['original_selling_amount'].mean()
     df, dummies_default_values = get_dummies_preprocess(df)
     default_values.update(dummies_default_values)
     df = df.drop(columns=COLS_TO_DROP)
